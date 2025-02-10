@@ -1,16 +1,27 @@
+/* eslint-disable react-func/max-lines-per-function */
 import React from 'react';
 
 import setLanguage from 'next-translate/setLanguage';
 import useTranslation from 'next-translate/useTranslation';
 import { useDispatch, useSelector } from 'react-redux';
 
+import Button, { ButtonShape, ButtonVariant } from '../dls/Button/Button';
+import PopoverMenu, { PopoverMenuExpandDirection } from '../dls/PopoverMenu/PopoverMenu';
+import { ToastStatus, useToast } from '../dls/Toast/Toast';
+
 import styles from './LanguageSelector.module.scss';
 
+import ChevronSelectIcon from '@/icons/chevron-select.svg';
+import GlobeIcon from '@/icons/globe.svg';
+import resetSettings from '@/redux/actions/reset-settings';
+import { selectIsUsingDefaultSettings } from '@/redux/slices/defaultSettings';
+import { addOrUpdateUserPreference } from '@/utils/auth/api';
+import { isLoggedIn } from '@/utils/auth/login';
+import { setLocaleCookie } from '@/utils/cookies';
+import { logEvent, logValueChange } from '@/utils/eventLogger';
+import { getLocaleName } from '@/utils/locale';
 import i18nConfig from 'i18n.json';
-import Select from 'src/components/dls/Forms/Select';
-import { selectIsUsingDefaultSettings } from 'src/redux/slices/defaultSettings';
-import resetSettings from 'src/redux/slices/reset-settings';
-import { getLocaleName } from 'src/utils/locale';
+import PreferenceGroup from 'types/auth/PreferenceGroup';
 
 const { locales } = i18nConfig;
 
@@ -19,12 +30,19 @@ const options = locales.map((lng) => ({
   value: lng,
 }));
 
-const COOKIE_PERSISTENCE_PERIOD_MS = 86400000000000; // maximum milliseconds-since-the-epoch value https://stackoverflow.com/a/56980560/1931451
+type LanguageSelectorProps = {
+  shouldShowSelectedLang?: boolean;
+  expandDirection?: PopoverMenuExpandDirection;
+};
 
-const LanguageSelector = () => {
+const LanguageSelector = ({
+  shouldShowSelectedLang: isFooter,
+  expandDirection = PopoverMenuExpandDirection.BOTTOM,
+}: LanguageSelectorProps) => {
   const isUsingDefaultSettings = useSelector(selectIsUsingDefaultSettings);
   const dispatch = useDispatch();
-  const { lang } = useTranslation();
+  const { t, lang } = useTranslation('common');
+  const toast = useToast();
 
   /**
    * When the user changes the language, we will:
@@ -44,26 +62,107 @@ const LanguageSelector = () => {
     if (isUsingDefaultSettings) {
       dispatch(resetSettings(newLocale));
     }
+    logValueChange('locale', lang, newLocale);
+
     await setLanguage(newLocale);
-    const date = new Date();
-    date.setTime(COOKIE_PERSISTENCE_PERIOD_MS);
-    // eslint-disable-next-line i18next/no-literal-string
-    document.cookie = `NEXT_LOCALE=${newLocale};expires=${date.toUTCString()};path=/`;
+    setLocaleCookie(newLocale);
+
+    if (isLoggedIn()) {
+      addOrUpdateUserPreference(
+        PreferenceGroup.LANGUAGE,
+        newLocale,
+        PreferenceGroup.LANGUAGE,
+      ).catch(() => {
+        toast(t('error.pref-persist-fail'), {
+          status: ToastStatus.Warning,
+          actions: [
+            {
+              text: t('undo'),
+              primary: true,
+              onClick: async () => {
+                await setLanguage(newLocale);
+                setLocaleCookie(newLocale);
+              },
+            },
+            {
+              text: t('continue'),
+              primary: false,
+              onClick: () => {
+                // do nothing
+              },
+            },
+          ],
+        });
+      });
+    }
+  };
+
+  const onOpenChange = (open: boolean) => {
+    if (open) {
+      if (isFooter) {
+        logEvent(`footer_language_selector_open`);
+      } else {
+        logEvent(`navbar_language_selector_open`);
+      }
+      return;
+    }
+
+    if (isFooter) {
+      logEvent(`footer_language_selector_close`);
+    } else {
+      logEvent(`navbar_language_selector_close`);
+    }
   };
 
   return (
-    <div className={styles.container}>
-      <Select
-        id="locale"
-        name="locale"
-        options={options}
-        value={lang}
-        onChange={onChange}
-        defaultStyle={false}
-        className={styles.select}
-        withBackground={false}
-      />
-    </div>
+    <PopoverMenu
+      expandDirection={expandDirection}
+      trigger={
+        isFooter ? (
+          <Button
+            className={styles.triggerButton}
+            prefix={
+              <span className={styles.globeIconWrapper}>
+                <GlobeIcon />
+              </span>
+            }
+            tooltip={t('languages')}
+            variant={ButtonVariant.Ghost}
+            suffix={
+              <span className={styles.triggerSuffixContainer}>
+                <ChevronSelectIcon />
+              </span>
+            }
+          >
+            {getLocaleName(lang)}
+          </Button>
+        ) : (
+          <Button
+            tooltip={t('languages')}
+            shape={ButtonShape.Circle}
+            variant={ButtonVariant.Ghost}
+            ariaLabel={t('aria.select-lng')}
+          >
+            <span className={styles.globeIconWrapper}>
+              <GlobeIcon />
+            </span>
+          </Button>
+        )
+      }
+      onOpenChange={onOpenChange}
+      isPortalled={false}
+    >
+      {options.map((option) => (
+        <PopoverMenu.Item
+          isSelected={option.value === lang}
+          shouldCloseMenuAfterClick
+          key={option.value}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </PopoverMenu.Item>
+      ))}
+    </PopoverMenu>
   );
 };
 

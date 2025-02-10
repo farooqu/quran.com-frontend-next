@@ -2,7 +2,7 @@ import classNames from 'classnames';
 
 import styles from './Text.module.scss';
 
-import Link from 'src/components/dls/Link/Link';
+import Link, { LinkVariant } from '@/dls/Link/Link';
 
 interface Props {
   text: any;
@@ -12,12 +12,14 @@ const Text: React.FC<Props> = ({ text }) => {
   if (!text) {
     return null;
   }
-  return text.map((value) => {
+  return text.map((value, index) => {
     const {
       annotations: { bold, color, italic, strikethrough, underline },
     } = value;
     return (
       <span
+        // eslint-disable-next-line react/no-array-index-key
+        key={index}
         className={classNames({
           [styles.bold]: bold,
           [styles.italic]: italic,
@@ -27,7 +29,12 @@ const Text: React.FC<Props> = ({ text }) => {
         style={color !== 'default' ? { color } : {}}
       >
         {value.text.link ? (
-          <Link href={text.link.url} newTab>
+          <Link
+            href={value.text.link.url}
+            variant={LinkVariant.Highlight}
+            isNewTab
+            shouldPrefetch={false}
+          >
             {value.text.content}
           </Link>
         ) : (

@@ -1,28 +1,15 @@
-import { useMemo } from 'react';
+import { useContext, useMemo } from 'react';
 
+import { useSelector } from '@xstate/react';
 import useTranslation from 'next-translate/useTranslation';
-import { useDispatch, useSelector } from 'react-redux';
-import useSWRImmutable from 'swr/immutable';
 
-import BackwardIcon from '../../../public/icons/backward.svg';
-import ForwardIcon from '../../../public/icons/forward.svg';
-
-import { triggerSetCurrentTime } from './EventTriggers';
-
-import { getChapterAudioData } from 'src/api';
-import Button, { ButtonShape, ButtonVariant } from 'src/components/dls/Button/Button';
-import {
-  finishRepeatEachVerseProgress,
-  resetRepeatEachVerseProgress,
-  selectAudioData,
-  selectIsInRepeatMode,
-  selectReciter,
-} from 'src/redux/slices/AudioPlayer/state';
-import { selectHighlightedLocation } from 'src/redux/slices/QuranReader/highlightedLocation';
-import { makeChapterAudioDataUrl } from 'src/utils/apiPaths';
-import { getVerseTimingByVerseKey } from 'src/utils/audio';
-import { getChapterData } from 'src/utils/chapter';
-import { makeVerseKey } from 'src/utils/verse';
+import Button, { ButtonShape, ButtonVariant } from '@/dls/Button/Button';
+import BackwardIcon from '@/icons/backward.svg';
+import ForwardIcon from '@/icons/forward.svg';
+import { getChapterData } from '@/utils/chapter';
+import { logButtonClick } from '@/utils/eventLogger';
+import DataContext from 'src/contexts/DataContext';
+import { AudioPlayerMachineContext } from 'src/xstate/AudioPlayerMachineContext';
 
 export enum SeekButtonType {
   NextAyah = 'nextAyah',
@@ -34,61 +21,37 @@ type SeekButtonProps = {
   isLoading: boolean;
 };
 const SeekButton = ({ type, isLoading }: SeekButtonProps) => {
-  const { t, lang } = useTranslation('common');
-  const dispatch = useDispatch();
-  const { highlightedChapter, highlightedVerse } = useSelector(selectHighlightedLocation);
-  const reciter = useSelector(selectReciter);
-  const audioData = useSelector(selectAudioData);
-  const isInRepeatMode = useSelector(selectIsInRepeatMode);
+  const audioService = useContext(AudioPlayerMachineContext);
+  const chaptersData = useContext(DataContext);
+
+  const surah = useSelector(audioService, (state) => state.context.surah);
+  const ayahNumber = useSelector(audioService, (state) => state.context.ayahNumber);
+
   const chapterData = useMemo(
-    () => getChapterData(highlightedChapter?.toString()),
-    [highlightedChapter],
+    () => getChapterData(chaptersData, surah?.toString()),
+    [chaptersData, surah],
   );
 
-  const { data: chapterAudioData } = useSWRImmutable(
-    reciter.id && audioData?.chapterId
-      ? makeChapterAudioDataUrl(reciter.id, audioData?.chapterId, true)
-      : null, // only fetch when reciterId and chapterId is available
-    () => getChapterAudioData(reciter.id, audioData?.chapterId, true),
-  );
-
-  const verseTimingData = chapterAudioData?.verseTimings || [];
+  const { t } = useTranslation('common');
 
   const onSeek = () => {
-    if (isInRepeatMode) {
-      // when in repeatMode, finish the repeat progress for current ayah
-      // otherwise the AudioRepeatManager will replay the current Ayah when we set the new timestamp
-      if (type === SeekButtonType.NextAyah) dispatch(finishRepeatEachVerseProgress());
-      else dispatch(resetRepeatEachVerseProgress(lang));
-    }
-    const newVerse = type === SeekButtonType.PrevAyah ? highlightedVerse - 1 : highlightedVerse + 1;
-    const verseKey = makeVerseKey(highlightedChapter, newVerse);
-
-    const selectedVerseTiming = getVerseTimingByVerseKey(verseKey, verseTimingData);
-    triggerSetCurrentTime(selectedVerseTiming.timestampFrom / 1000); // AudioPlayer accept 'seconds' instead of 'ms'
+    // eslint-disable-next-line i18next/no-literal-string
+    logButtonClick(`audio_player_${type}`);
+    audioService.send({ type: type === SeekButtonType.NextAyah ? 'NEXT_AYAH' : 'PREV_AYAH' });
   };
 
-  // disable the button if loading, or chapterAudioData not available, or highlighted verse not available
-  // or currently playing first verse or last verse
   const isDisabled =
     isLoading ||
-    !highlightedChapter ||
-    !highlightedVerse ||
-    !chapterAudioData ||
-    (type === SeekButtonType.PrevAyah && highlightedVerse <= 1) ||
-    (type === SeekButtonType.NextAyah && highlightedVerse >= chapterData?.versesCount);
+    (type === SeekButtonType.PrevAyah && ayahNumber <= 1) ||
+    (type === SeekButtonType.NextAyah && ayahNumber >= chapterData?.versesCount);
 
   return (
     <Button
-      tooltip={
-        type === SeekButtonType.PrevAyah
-          ? t('audio.player.previous-ayah')
-          : t('audio.player.next-ayah')
-      }
+      tooltip={type === SeekButtonType.PrevAyah ? t('previous-ayah') : t('next-ayah')}
       variant={ButtonVariant.Ghost}
       shape={ButtonShape.Circle}
-      disabled={isDisabled}
       onClick={onSeek}
+      isDisabled={isDisabled}
     >
       {type === SeekButtonType.PrevAyah ? <BackwardIcon /> : <ForwardIcon />}
     </Button>

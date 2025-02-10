@@ -1,13 +1,16 @@
 import React from 'react';
 
 import useTranslation from 'next-translate/useTranslation';
-import Link from 'next/link';
 
 import SearchResultItem from './SearchResultItem';
 import styles from './SearchResults.module.scss';
 
-import Pagination from 'src/components/dls/Pagination/Pagination';
-import NavigationItem from 'src/components/Search/NavigationItem';
+import NavigationItem from '@/components/Search/NavigationItem';
+import Link from '@/dls/Link/Link';
+import Pagination from '@/dls/Pagination/Pagination';
+import SearchQuerySource from '@/types/SearchQuerySource';
+import { logButtonClick } from '@/utils/eventLogger';
+import { toLocalizedNumber } from '@/utils/locale';
 import { SearchResponse } from 'types/ApiResponses';
 
 interface Props {
@@ -17,6 +20,7 @@ interface Props {
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
+  onSearchResultClicked?: () => void;
 }
 
 const SearchResults: React.FC<Props> = ({
@@ -26,33 +30,58 @@ const SearchResults: React.FC<Props> = ({
   currentPage,
   onPageChange,
   pageSize,
+  onSearchResultClicked,
 }) => {
-  const { t } = useTranslation('common');
+  const { t, lang } = useTranslation();
   return (
     <>
       <div>
         {!!searchResult.result.navigation?.length && (
-          <>
-            <p className={styles.boldHeader}>{t('search.jump-to')}</p>
+          <div className={styles.navigationItemsListContainer}>
             {searchResult.result.navigation.map((navigationResult) => (
-              <NavigationItem key={navigationResult.key} navigation={navigationResult} />
+              <span className={styles.navigationItemContainer} key={navigationResult.key}>
+                <NavigationItem
+                  isSearchDrawer={isSearchDrawer}
+                  navigation={navigationResult}
+                  service={searchResult.service}
+                />
+              </span>
             ))}
-          </>
+          </div>
         )}
-        <p className={styles.boldHeader}>{t('search.results')}</p>
+        <p className={styles.header}>
+          {t('common:search-results', {
+            count: toLocalizedNumber(searchResult.pagination.totalRecords, lang),
+          })}
+        </p>
         <>
           {searchResult.result.verses.map((result) => (
-            <SearchResultItem key={result.verseKey} result={result} />
+            <SearchResultItem
+              key={result.verseKey}
+              result={result}
+              source={
+                isSearchDrawer ? SearchQuerySource.SearchDrawer : SearchQuerySource.SearchPage
+              }
+              service={searchResult.service}
+            />
           ))}
           {isSearchDrawer ? (
             <div className={styles.resultsSummaryContainer}>
               <p>
-                {searchResult.pagination.totalRecords} {t('search.results')}
+                {toLocalizedNumber(searchResult.pagination.totalRecords, lang)}{' '}
+                {t('common:search.results')}
               </p>
               {searchResult.pagination.totalRecords > 0 && (
-                <Link href={`/search?query=${searchQuery}`} passHref>
+                <Link
+                  href={`/search?query=${searchQuery}`}
+                  shouldPassHref
+                  onClick={() => {
+                    if (onSearchResultClicked) onSearchResultClicked();
+                    logButtonClick('search_drawer_show_all');
+                  }}
+                >
                   <a>
-                    <p>{t('search.show-all')}</p>
+                    <p className={styles.showAll}>{t('common:search.show-all')}</p>
                   </a>
                 </Link>
               )}

@@ -3,45 +3,58 @@ import React from 'react';
 
 import dynamic from 'next/dynamic';
 
+import useSyncReadingProgress from './hooks/useSyncReadingProgress';
 import ReadingPreferenceSwitcher from './ReadingPreferenceSwitcher';
-import TafsirView from './TafsirView';
 import TranslationView from './TranslationView';
 
-import QuranReaderStyles from 'src/redux/types/QuranReaderStyles';
-import Verse from 'types/Verse';
+import QuranReaderStyles from '@/redux/types/QuranReaderStyles';
+import { QuranReaderDataType } from '@/types/QuranReader';
+import { VersesResponse } from 'types/ApiResponses';
 
 const ReadingView = dynamic(() => import('./ReadingView'));
 
 interface Props {
-  isTafsirData: boolean;
-  isSelectedTafsirData: boolean;
   isReadingPreference: boolean;
-  verses: Verse[];
   quranReaderStyles: QuranReaderStyles;
+  quranReaderDataType: QuranReaderDataType;
+  initialData: VersesResponse;
+  resourceId: number | string;
 }
 
 const QuranReaderView: React.FC<Props> = ({
-  isTafsirData,
-  isSelectedTafsirData,
   isReadingPreference,
-  verses,
   quranReaderStyles,
+  quranReaderDataType,
+  initialData,
+  resourceId,
 }) => {
-  if (isTafsirData || isSelectedTafsirData) {
-    return <TafsirView verse={verses[0]} />;
-  }
+  useSyncReadingProgress({
+    isReadingPreference,
+  });
+
   if (isReadingPreference) {
     return (
       <>
         <ReadingPreferenceSwitcher />
-        <ReadingView verses={verses} quranReaderStyles={quranReaderStyles} />
+        <ReadingView
+          quranReaderStyles={quranReaderStyles}
+          quranReaderDataType={quranReaderDataType}
+          initialData={initialData}
+          resourceId={resourceId}
+        />
       </>
     );
   }
+
   return (
     <>
       <ReadingPreferenceSwitcher />
-      <TranslationView verses={verses} quranReaderStyles={quranReaderStyles} />
+      <TranslationView
+        quranReaderStyles={quranReaderStyles}
+        quranReaderDataType={quranReaderDataType}
+        initialData={initialData}
+        resourceId={resourceId}
+      />
     </>
   );
 };

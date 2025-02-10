@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 
 import classNames from 'classnames';
 
@@ -7,17 +7,41 @@ import PartialResult from './PartialResult';
 import SearchResults from './SearchResults';
 import styles from './VoiceSearchBodyContainer.module.scss';
 
-import Spinner, { SpinnerSize } from 'src/components/dls/Spinner/Spinner';
-import NoResults from 'src/components/Search/NoResults';
-import useTarteelVoiceSearch from 'src/hooks/useTarteelVoiceSearch';
+import NoResults from '@/components/Search/NoResults';
+import Spinner, { SpinnerSize } from '@/dls/Spinner/Spinner';
+import useTarteelVoiceSearch from '@/hooks/useTarteelVoiceSearch';
 
 interface Props {
   isCommandBar?: boolean;
 }
 
 const VoiceSearchBodyContainer: React.FC<Props> = ({ isCommandBar = false }) => {
-  const { isLoading, partialTranscript, searchResult, error, volume, isWaitingForPermission } =
-    useTarteelVoiceSearch();
+  const {
+    isLoading,
+    partialTranscript,
+    searchResult,
+    error,
+    volume,
+    isWaitingForPermission,
+    startRecording,
+    stopRecording,
+  } = useTarteelVoiceSearch();
+
+  useEffect(() => {
+    startRecording();
+
+    return () => {
+      stopRecording();
+    };
+
+    // we only want to start the recording once when the component mounts
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const stopVoiceSearch = () => {
+    // pass `false` so that we don't stop the recording and get the search results
+    stopRecording(false);
+  };
 
   if (isLoading) {
     return <Spinner size={SpinnerSize.Large} />;
@@ -30,13 +54,17 @@ const VoiceSearchBodyContainer: React.FC<Props> = ({ isCommandBar = false }) => 
           [styles.container]: !isCommandBar,
         })}
       >
-        <Error error={error} isWaitingForPermission={isWaitingForPermission} />
+        <Error
+          isCommandBar={isCommandBar}
+          error={error}
+          isWaitingForPermission={isWaitingForPermission}
+        />
       </div>
     );
   }
 
   // if we received the result but no matches
-  if (searchResult && !searchResult.matches.length) {
+  if (searchResult && !searchResult.matches?.length) {
     return (
       <div
         className={classNames({
@@ -44,7 +72,7 @@ const VoiceSearchBodyContainer: React.FC<Props> = ({ isCommandBar = false }) => 
           [styles.noResultContainer]: isCommandBar,
         })}
       >
-        <NoResults searchQuery={partialTranscript} isSearchDrawer={false} />
+        <NoResults searchQuery={partialTranscript} />
       </div>
     );
   }
@@ -60,7 +88,12 @@ const VoiceSearchBodyContainer: React.FC<Props> = ({ isCommandBar = false }) => 
             [styles.commandBarContainer]: isCommandBar,
           })}
         >
-          <PartialResult partialTranscript={partialTranscript} volume={volume} />
+          <PartialResult
+            verticalLayout={!isCommandBar}
+            partialTranscript={partialTranscript}
+            volume={volume}
+            stopRecording={stopVoiceSearch}
+          />
         </div>
       )}
     </>

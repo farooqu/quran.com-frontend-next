@@ -2,20 +2,24 @@
 @use "src/styles/breakpoints";
 
 .emptySpacePlaceholder {
-  height: constants.$navbar-height;
+  height: var(--navbar-container-height);
 }
 
 .container {
   inset-block-start: 0;
   position: fixed;
-  height: constants.$navbar-height;
+  height: var(--navbar-height);
   width: 100%;
   transition: var(--transition-regular);
-  background: var(--color-background-default);
+  background: var(--color-background-elevated);
   z-index: var(--z-index-header);
-  border-bottom: 1px var(--color-borders-hairline) solid;
+  will-change: transform;
 }
 
 .hiddenNav {
-  transform: translateY(0 - constants.$navbar-height);
+  // https://ptgamr.github.io/2014-09-13-translate3d-vs-translate-performance/
+  transform: translate3d(0, calc(-1 * var(--navbar-container-height)), 0);
+  @include breakpoints.smallerThanTablet {
+    transform: translate3d(0, calc(-1 * (var(--navbar-container-height) + var(--banner-height))), 0);
+  }
 }

@@ -8,11 +8,11 @@
 
   --color-secondary-faded: #333;
   --color-secondary-faint: #444;
-  --color-secondary-medium: #888;
+  --color-secondary-medium: var(--shade-7);
   --color-secondary-deep: #eaeaea;
 
-  --color-success-faded: #134244;
-  --color-success-faint: #1c5c61;
+  --color-success-faded: #272f33;
+  --color-success-faint: #3d474d;
   --color-success-medium: #2ca4ab;
   --color-success-deep: #f1feff;
 
@@ -21,15 +21,15 @@
   --color-error-medium: #f00;
   --color-error-deep: #f33;
 
-  --color-warning-faded: #ab570a;
-  --color-warning-faint: #f5a623;
-  --color-warning-medium: #f7b955;
-  --color-warning-deep: #ffefcf;
+  --color-warning-faded: #fef3dc;
+  --color-warning-faint: #ffdfaa;
+  --color-warning-medium: #ffb300;
+  --color-warning-deep: #ab570a;
 
-  --color-text-default: #fff;
+  --color-text-default: #e7e9ea;
   --color-text-faded: #777;
   --color-text-inverse: #000;
-  --color-text-link: #dbf8fa;
+  --color-text-link: #2ca4ab;
   --color-text-warning: #f7b955;
   --color-text-error: #f33;
 
@@ -42,13 +42,13 @@
   --color-background-alternative-deep: var(--shade-5);
 
   --color-background-inverse: #fff;
-  --color-background-backdrop: rgba(255, 255, 255, 0.25);
+  --color-background-backdrop: rgba(0, 0, 0, 0.8);
   --color-background-lighten: rgba(0, 0, 0, 0.75);
   // lighten the `background-color` by using it in `background-image`. check Button's ghost variant for example
 
-  --color-borders-hairline: rgb(52, 53, 54);
+  --color-borders-hairline: rgb(70, 75, 80);
 
-  --color-highlight: #f81ce5;
+  --color-highlight: #2ca4ab;
 
   --shadow-small: 0px 2px 4px var(--shade-9);
   --shadow-normal: 0px 4px 8px var(--shade-9);
@@ -57,4 +57,11 @@
   --shadow-jumbo: 0 30px 60px var(--shade-9);
   --shadow-hover: 0 30px 60px var(--shade-9);
   --shadow-sticky: 0 12px 10px -10px var(--shade-9);
+  font-palette: --Dark;
+
+  // scrollbar styles
+  --scrollbar-background: var(--shade-9);
+  --scrollbar-thumb: var(--shade-7);
+  --scrollbar-thumb-hover: var(--shade-6);
+  --scrollbar-thumb-active: var(--shade-5);
 }

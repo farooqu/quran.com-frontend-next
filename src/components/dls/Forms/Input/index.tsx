@@ -1,11 +1,21 @@
-import React, { ReactNode, useState, useEffect, ChangeEvent } from 'react';
+/* eslint-disable max-lines */
+import React, {
+  ReactNode,
+  useState,
+  useEffect,
+  ChangeEvent,
+  RefObject,
+  KeyboardEvent,
+  HTMLAttributes,
+} from 'react';
 
 import classNames from 'classnames';
 
-import ClearIcon from '../../../../../public/icons/close.svg';
 import Button, { ButtonShape, ButtonSize, ButtonVariant } from '../../Button/Button';
 
 import styles from './Input.module.scss';
+
+import ClearIcon from '@/icons/close.svg';
 
 export enum InputSize {
   Small = 'small',
@@ -17,6 +27,11 @@ export enum InputType {
   Error = 'error',
   Warning = 'warning',
   Success = 'success',
+}
+
+export enum InputVariant {
+  Default = 'default',
+  Main = 'main',
 }
 interface Props {
   id: string;
@@ -30,9 +45,17 @@ interface Props {
   suffix?: ReactNode;
   onClearClicked?: () => void;
   onChange?: (value: string) => void;
+  onKeyDown?: (event: KeyboardEvent<HTMLInputElement>) => void;
+  inputMode?: HTMLAttributes<HTMLInputElement>['inputMode'];
   value?: string;
-  label?: string;
+  label?: string | JSX.Element;
   type?: InputType;
+  shouldFlipOnRTL?: boolean;
+  variant?: InputVariant;
+  containerClassName?: string;
+  htmlType?: React.HTMLInputTypeAttribute;
+  isRequired?: boolean;
+  inputRef?: RefObject<HTMLInputElement>;
 }
 
 const Input: React.FC<Props> = ({
@@ -45,11 +68,19 @@ const Input: React.FC<Props> = ({
   disabled = false,
   clearable = false,
   type,
+  variant,
   prefix,
   suffix,
   onClearClicked,
   onChange,
+  onKeyDown,
+  inputMode,
   value = '',
+  shouldFlipOnRTL = true,
+  containerClassName,
+  htmlType,
+  isRequired,
+  inputRef,
 }) => {
   const [inputValue, setInputValue] = useState(value);
   // listen to any change in value in-case the value gets populated after and API call.
@@ -69,7 +100,7 @@ const Input: React.FC<Props> = ({
     <>
       {label && <p className={styles.label}>{label}</p>}
       <div
-        className={classNames(styles.container, {
+        className={classNames(styles.container, containerClassName, {
           [styles.smallContainer]: size === InputSize.Small,
           [styles.mediumContainer]: size === InputSize.Medium,
           [styles.largeContainer]: size === InputSize.Large,
@@ -78,6 +109,7 @@ const Input: React.FC<Props> = ({
           [styles.error]: type === InputType.Error,
           [styles.success]: type === InputType.Success,
           [styles.warning]: type === InputType.Warning,
+          [styles.main]: variant === InputVariant.Main,
         })}
       >
         {prefix && (
@@ -88,13 +120,18 @@ const Input: React.FC<Props> = ({
             [styles.error]: type === InputType.Error,
             [styles.success]: type === InputType.Success,
             [styles.warning]: type === InputType.Warning,
+            [styles.rtlInput]: shouldFlipOnRTL,
           })}
-          type="text"
+          type={htmlType}
+          required={isRequired}
           dir="auto"
           id={id}
+          ref={inputRef}
           disabled={disabled}
           onChange={onValueChange}
           value={inputValue}
+          onKeyDown={onKeyDown}
+          inputMode={inputMode}
           {...(placeholder && { placeholder })}
           {...(name && { name })}
         />

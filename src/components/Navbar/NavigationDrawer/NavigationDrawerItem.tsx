@@ -2,12 +2,11 @@ import React from 'react';
 
 import classNames from 'classnames';
 
-import IconNorthEast from '../../../../public/icons/north_east.svg';
-
 import LinkContainer from './LinkContainer';
 import styles from './NavigationDrawerItem.module.scss';
 
-import IconContainer, { IconColor, IconSize } from 'src/components/dls/IconContainer/IconContainer';
+import IconContainer, { IconColor, IconSize } from '@/dls/IconContainer/IconContainer';
+import IconNorthEast from '@/icons/north_east.svg';
 
 type NavigationDrawerItemProps = {
   title?: string;
@@ -15,7 +14,7 @@ type NavigationDrawerItemProps = {
   isExternalLink?: boolean;
   href?: string;
   isStale?: boolean;
-  shouldFlipOnRTL?: boolean;
+  onClick?: () => void;
 };
 
 const NavigationDrawerItem = ({
@@ -24,11 +23,12 @@ const NavigationDrawerItem = ({
   isExternalLink,
   href,
   isStale = false,
+  onClick,
 }: NavigationDrawerItemProps) => (
-  <LinkContainer href={href} isExternalLink={isExternalLink}>
+  <LinkContainer href={href} isExternalLink={isExternalLink} onClick={onClick}>
     <div className={classNames(styles.container, { [styles.containerStale]: isStale })}>
       <div className={styles.innerContainer}>
-        <div>
+        <div className={styles.itemContainer}>
           <IconContainer
             icon={icon}
             size={IconSize.Xsmall}

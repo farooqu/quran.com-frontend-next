@@ -4,7 +4,7 @@ import NextLink from 'next/link';
 
 import styles from './Link.module.scss';
 
-import Wrapper from 'src/components/Wrapper/Wrapper';
+import Wrapper from '@/components/Wrapper/Wrapper';
 
 export enum LinkVariant {
   Highlight = 'highlight',
@@ -16,23 +16,61 @@ export enum LinkVariant {
 type LinkProps = {
   href: string;
   variant?: LinkVariant;
-  newTab?: boolean;
+  isNewTab?: boolean;
   download?: string;
+  className?: string;
+  onClick?: React.MouseEventHandler;
+  shouldPassHref?: boolean;
+  isShallow?: boolean;
+  shouldPrefetch?: boolean;
+  title?: string;
+  children?: React.ReactNode;
+  ariaLabel?: string;
 };
 
-const Link: React.FC<LinkProps> = ({ href, children, newTab = false, variant, download }) => (
-  <Wrapper shouldWrap={!download} wrapper={(node) => <NextLink href={href}>{node}</NextLink>}>
+const Link: React.FC<LinkProps> = ({
+  href,
+  children,
+  isNewTab = false,
+  variant,
+  download,
+  className,
+  onClick,
+  shouldPassHref,
+  isShallow = false,
+  shouldPrefetch = true,
+  title,
+  ariaLabel,
+}) => (
+  <Wrapper
+    shouldWrap={!download}
+    wrapper={(node) => (
+      <NextLink
+        href={href}
+        {...(shouldPassHref && { shouldPassHref })}
+        {...(shouldPrefetch === false && { prefetch: false })}
+        shallow={isShallow}
+        legacyBehavior
+      >
+        {node}
+      </NextLink>
+    )}
+  >
     <a
       href={href}
       download={download}
-      target={newTab ? '_blank' : undefined}
-      rel={newTab ? 'noreferrer' : undefined}
-      className={classNames(styles.base, {
+      target={isNewTab ? '_blank' : undefined}
+      rel={isNewTab ? 'noreferrer' : undefined}
+      className={classNames(styles.base, className, {
         [styles.highlight]: variant === LinkVariant.Highlight,
         [styles.primary]: variant === LinkVariant.Primary,
         [styles.secondary]: variant === LinkVariant.Secondary,
         [styles.blend]: variant === LinkVariant.Blend,
       })}
+      {...(onClick && { onClick })}
+      {...(title && { title })}
+      // eslint-disable-next-line @typescript-eslint/naming-convention
+      {...(ariaLabel && { 'aria-label': ariaLabel })}
     >
       {children}
     </a>

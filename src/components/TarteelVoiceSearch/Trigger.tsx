@@ -3,25 +3,25 @@ import React, { useRef } from 'react';
 import useTranslation from 'next-translate/useTranslation';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import CloseIcon from '../../../public/icons/close.svg';
-import MicrophoneIcon from '../../../public/icons/microphone.svg';
-
 import styles from './Trigger.module.scss';
 
-import Button, { ButtonShape, ButtonVariant } from 'src/components/dls/Button/Button';
-import useBrowserLayoutEffect from 'src/hooks/useBrowserLayoutEffect';
+import Button, { ButtonShape, ButtonVariant } from '@/dls/Button/Button';
+import useBrowserLayoutEffect from '@/hooks/useBrowserLayoutEffect';
+import CloseIcon from '@/icons/close.svg';
+import MicrophoneIcon from '@/icons/microphone.svg';
 import {
   toggleIsSearchDrawerVoiceFlowStarted,
   toggleIsCommandBarVoiceFlowStarted,
   selectIsCommandBarVoiceFlowStarted,
   selectIsSearchDrawerVoiceFlowStarted,
-} from 'src/redux/slices/voiceSearch';
+} from '@/redux/slices/voiceSearch';
 
 interface Props {
   isCommandBar?: boolean;
+  onClick: (startFlow: boolean) => void;
 }
 
-const TarteelVoiceSearchTrigger: React.FC<Props> = ({ isCommandBar = false }) => {
+const TarteelVoiceSearchTrigger: React.FC<Props> = ({ isCommandBar = false, onClick }) => {
   const { t } = useTranslation('common');
   const isSupported = useRef(true);
   const dispatch = useDispatch();
@@ -34,7 +34,12 @@ const TarteelVoiceSearchTrigger: React.FC<Props> = ({ isCommandBar = false }) =>
     shallowEqual,
   );
 
+  const showCloseIcon =
+    (isCommandBar && isCommandBarVoiceFlowStarted) ||
+    (!isCommandBar && isSearchDrawerVoiceFlowStarted);
+
   const onMicClicked = () => {
+    onClick(!showCloseIcon);
     dispatch({
       type: isCommandBar
         ? toggleIsCommandBarVoiceFlowStarted.type
@@ -59,10 +64,6 @@ const TarteelVoiceSearchTrigger: React.FC<Props> = ({ isCommandBar = false }) =>
     return <></>;
   }
 
-  const showCloseIcon =
-    (isCommandBar && isCommandBarVoiceFlowStarted) ||
-    (!isCommandBar && isSearchDrawerVoiceFlowStarted);
-
   return (
     <Button
       onClick={onMicClicked}
@@ -71,6 +72,7 @@ const TarteelVoiceSearchTrigger: React.FC<Props> = ({ isCommandBar = false }) =>
       className={styles.button}
       tooltip={t('command-bar.search-by-voice')}
       hasSidePadding={false}
+      ariaLabel={t('command-bar.search-by-voice')}
     >
       {showCloseIcon ? <CloseIcon /> : <MicrophoneIcon />}
     </Button>

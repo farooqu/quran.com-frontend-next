@@ -7,8 +7,9 @@ import DrawerSearchIcon from '../Buttons/DrawerSearchIcon';
 
 import styles from './Header.module.scss';
 
-import TarteelVoiceSearchTrigger from 'src/components/TarteelVoiceSearch/Trigger';
-import useElementComputedPropertyValue from 'src/hooks/useElementComputedPropertyValue';
+import TarteelVoiceSearchTrigger from '@/components/TarteelVoiceSearch/Trigger';
+import Separator from '@/dls/Separator/Separator';
+import { logButtonClick } from '@/utils/eventLogger';
 
 interface Props {
   isVoiceFlowStarted: boolean;
@@ -28,36 +29,49 @@ const Header: React.FC<Props> = ({
   searchQuery,
 }) => {
   const { t } = useTranslation('common');
-  // we detect whether the user is inputting a right-to-left text or not so we can change the layout accordingly
-  const isRTLInput = useElementComputedPropertyValue(inputRef, 'direction') === 'rtl';
+
+  const onKeyboardReturnPressed = (e) => {
+    e.preventDefault();
+    inputRef.current.blur();
+  };
+
   return (
     <>
       {isVoiceFlowStarted ? (
-        <TarteelVoiceSearchTrigger />
+        <TarteelVoiceSearchTrigger
+          onClick={() => {
+            logButtonClick('search_drawer_voice_search_stop_flow');
+          }}
+        />
       ) : (
         <>
           <DrawerSearchIcon />
-          <div
-            className={classNames(styles.searchInputContainer, {
-              [styles.searchInputContainerRTL]: isRTLInput,
-            })}
-          >
-            <input
-              className={styles.searchInput}
-              type="text"
-              ref={inputRef}
-              dir="auto"
-              placeholder={t('search.title')}
-              onChange={onSearchQueryChange}
-              value={searchQuery}
-              disabled={isSearching}
-            />
-            <TarteelVoiceSearchTrigger />
+          <div className={classNames(styles.searchInputContainer)}>
+            <form onSubmit={onKeyboardReturnPressed}>
+              <input
+                className={styles.searchInput}
+                type="text"
+                ref={inputRef}
+                dir="auto"
+                placeholder={t('search.title')}
+                onChange={onSearchQueryChange}
+                value={searchQuery}
+                disabled={isSearching}
+              />
+            </form>
             {searchQuery && (
-              <button type="button" className={styles.clear} onClick={resetQueryAndResults}>
-                {t('input.clear')}
-              </button>
+              <>
+                <button type="button" className={styles.clear} onClick={resetQueryAndResults}>
+                  {t('input.clear')}
+                </button>
+                <Separator isVertical className={styles.separator} />
+              </>
             )}
+            <TarteelVoiceSearchTrigger
+              onClick={() => {
+                logButtonClick('search_drawer_voice_search_start_flow');
+              }}
+            />
           </div>
         </>
       )}

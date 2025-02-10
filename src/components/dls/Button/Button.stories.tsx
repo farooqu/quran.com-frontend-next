@@ -1,16 +1,12 @@
-/* eslint-disable react/no-multi-comp */
-import React from 'react';
-
-import SettingIcon from '../../../../public/icons/settings.svg';
-
 import Button, { ButtonShape, ButtonSize, ButtonType, ButtonVariant } from './Button';
+
+import SettingIcon from '@/icons/settings.svg';
 
 export default {
   title: 'dls/Button',
   component: Button,
   args: {
     size: ButtonSize.Medium,
-    shape: ButtonShape.Square,
     type: ButtonType.Primary,
     disabled: false,
     loading: false,
@@ -93,6 +89,7 @@ WithIconSuffix.args = {
   suffix: <SettingIcon />,
 };
 
+// eslint-disable-next-line react/no-multi-comp
 const TemplateIcon = (args) => (
   <Button {...args}>
     <SettingIcon />

@@ -1,11 +1,13 @@
 /* eslint-disable react-func/max-lines-per-function */
 import { NextSeoProps } from 'next-seo';
 
-import { getLanguageAlternates } from './locale';
+import { getOpenGraphLocale } from './locale';
+
+import { getDefaultOgImageUrl } from '@/lib/og';
+import { VersesResponse } from 'types/ApiResponses';
 
 export const config = {
   siteName: 'Quran.com',
-  websiteLogo: 'https://next.quran.com/images/homepage.png', // TODO: update this once we are live
   twitterHandle: '@app_quran',
   twitterCardType: 'summary_large_image',
   facebookApp: '342185219529773',
@@ -31,11 +33,11 @@ export interface SEOProps extends NextSeoProps {
   dangerouslySetAllPagesToNoIndex?: boolean;
 }
 
+const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
 export function createSEOConfig({
   title,
   description,
   canonicalUrl,
-  path,
   locale,
 }: SeoConfigType = {}): SEOProps {
   const seoTitle = title || '';
@@ -45,21 +47,20 @@ export function createSEOConfig({
     description,
     titleTemplate: '%s - Quran.com',
     defaultTitle: config.siteName,
-    dangerouslySetAllPagesToNoFollow: true, // @see https://github.com/garmeeh/next-seo#dangerouslySetAllPagesToNoFollow // TODO: remove this once we are ready to index the site
-    dangerouslySetAllPagesToNoIndex: true, // @see https://github.com/garmeeh/next-seo#dangerouslySetAllPagesToNoIndex // TODO: remove this once we are ready to index the site
+    dangerouslySetAllPagesToNoFollow: !isProduction, // @see https://github.com/garmeeh/next-seo#dangerouslySetAllPagesToNoFollow
+    dangerouslySetAllPagesToNoIndex: !isProduction, // @see https://github.com/garmeeh/next-seo#dangerouslySetAllPagesToNoIndex
     canonical: canonicalUrl,
-    languageAlternates: getLanguageAlternates(path), // @see https://developers.google.com/search/docs/advanced/crawling/localized-versions
     openGraph: {
       type: 'website',
-      locale,
+      locale: getOpenGraphLocale(locale),
       url: canonicalUrl,
       title: seoTitle,
       description,
       images: [
         {
-          url: config.websiteLogo,
-          width: 640,
-          height: 217,
+          url: getDefaultOgImageUrl({ locale }),
+          width: 1200,
+          height: 630,
           alt: config.siteName,
         },
       ],
@@ -76,37 +77,37 @@ export function createSEOConfig({
     },
     additionalMetaTags: [
       {
-        name: 'fb:pages',
-        content: `app-id=${config.facebookPage}`,
+        property: 'fb:pages',
+        content: config.facebookPage,
       },
-      {
-        name: 'al:ios:url',
-        content: config.appleAppUrl,
-      },
-      {
-        name: 'al:ios:app_name',
-        content: config.appleAppName,
-      },
-      {
-        name: 'al:ios:app_store_id',
-        content: config.appleAppId,
-      },
-      {
-        name: 'al:android:url',
-        content: config.androidAppUrl,
-      },
-      {
-        name: 'al:android:app_name',
-        content: config.androidAppName,
-      },
-      {
-        name: 'al:android:package',
-        content: config.androidPackage,
-      },
-      {
-        name: 'apple-itunes-app',
-        content: `app-id=${config.appleAppId}`,
-      },
+      // {
+      //   name: 'al:ios:url',
+      //   content: config.appleAppUrl,
+      // },
+      // {
+      //   name: 'al:ios:app_name',
+      //   content: config.appleAppName,
+      // },
+      // {
+      //   name: 'al:ios:app_store_id',
+      //   content: config.appleAppId,
+      // },
+      // {
+      //   name: 'al:android:url',
+      //   content: config.androidAppUrl,
+      // },
+      // {
+      //   name: 'al:android:app_name',
+      //   content: config.androidAppName,
+      // },
+      // {
+      //   name: 'al:android:package',
+      //   content: config.androidPackage,
+      // },
+      // {
+      //   name: 'apple-itunes-app',
+      //   content: `app-id=${config.appleAppId}`,
+      // },
       {
         name: 'Charset',
         content: 'UTF-8',
@@ -127,6 +128,20 @@ export function createSEOConfig({
         name: 'viewport',
         content: 'width=device-width, initial-scale=1, shrink-to-fit=no',
       },
+      // ...getOpenGraphAlternateLocales(locale),
     ],
   };
 }
+
+/**
+ * Concatenate the first 4 verses of the Page/Juz.
+ *
+ * @param {VersesResponse} response
+ * @returns {string}
+ */
+export const getPageOrJuzMetaDescription = (response: VersesResponse): string => {
+  return response.verses
+    .slice(0, 4)
+    .map((verse) => verse.textImlaeiSimple)
+    .join(' - ');
+};

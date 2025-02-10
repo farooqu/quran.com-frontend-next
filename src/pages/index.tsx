@@ -1,55 +1,69 @@
+/* eslint-disable react/no-multi-comp */
 import React from 'react';
 
 import classNames from 'classnames';
 import { NextPage, GetStaticProps } from 'next';
+import Head from 'next/head';
+import useTranslation from 'next-translate/useTranslation';
 
 import styles from './index.module.scss';
 
-import ChapterAndJuzList from 'src/components/chapters/ChapterAndJuzList';
-import Footer from 'src/components/dls/Footer/Footer';
-import Separator from 'src/components/dls/Separator/Separator';
-import HomePageHero from 'src/components/HomePage/HomePageHero';
-import HomePageWelcomeMessage from 'src/components/HomePage/HomePageWelcomeMessage';
-import BookmarksSection from 'src/components/Verses/BookmarksSection';
-import RecentReadingSessions from 'src/components/Verses/RecentReadingSessions';
-import { getAllChaptersData } from 'src/utils/chapter';
+import ChapterAndJuzListWrapper from '@/components/chapters/ChapterAndJuzList';
+import HomePageHero from '@/components/HomePage/HomePageHero';
+import QuranGrowthJourneySection from '@/components/HomePage/QuranGrowthJourneySection';
+import RamadanActivitiesSection from '@/components/HomePage/RamadanActivitiesSection';
+import NextSeoWrapper from '@/components/NextSeoWrapper';
+import BookmarksAndCollectionsSection from '@/components/Verses/BookmarksAndCollectionsSection';
+import { getAllChaptersData } from '@/utils/chapter';
+import { getLanguageAlternates } from '@/utils/locale';
+import { getCanonicalUrl } from '@/utils/navigation';
 import { ChaptersResponse } from 'types/ApiResponses';
+import ChaptersData from 'types/ChaptersData';
 
 type IndexProps = {
   chaptersResponse: ChaptersResponse;
+  chaptersData: ChaptersData;
 };
 
-const Index: NextPage<IndexProps> = ({ chaptersResponse: { chapters } }) => (
-  <div className={styles.pageContainer}>
-    <div className={classNames(styles.listContainer, styles.flow)}>
-      <HomePageHero />
-      <div className={styles.flowItem}>
-        <HomePageWelcomeMessage />
+const Index: NextPage<IndexProps> = ({ chaptersResponse: { chapters } }): JSX.Element => {
+  const { t, lang } = useTranslation('home');
+  return (
+    <>
+      <Head>
+        <link rel="preload" as="image" href="/images/background.jpg" crossOrigin="anonymous" />
+      </Head>
+      <NextSeoWrapper
+        title={t('home:noble-quran')}
+        url={getCanonicalUrl(lang, '')}
+        languageAlternates={getLanguageAlternates('')}
+      />
+      <div className={styles.pageContainer}>
+        <div className={styles.flow}>
+          <HomePageHero />
+          <div className={classNames(styles.flowItem, styles.fullWidth)}>
+            <RamadanActivitiesSection />
+          </div>
+          <div className={classNames(styles.flowItem, styles.fullWidth)}>
+            <QuranGrowthJourneySection />
+          </div>
+          <div className={classNames(styles.flowItem, styles.fullWidth)}>
+            <BookmarksAndCollectionsSection isHomepage />
+          </div>
+          <div className={styles.flowItem}>
+            <ChapterAndJuzListWrapper chapters={chapters} />
+          </div>
+        </div>
       </div>
-      <div className={classNames(styles.flowItem, styles.fullWidth)}>
-        <RecentReadingSessions />
-      </div>
-      <div className={classNames(styles.flowItem, styles.fullWidth)}>
-        <BookmarksSection />
-      </div>
-      <div className={styles.flowItem}>
-        <ChapterAndJuzList chapters={chapters} />
-      </div>
-      <div className={styles.flowItem}>
-        <Separator />
-      </div>
-      <div className={styles.flowItem}>
-        <Footer />
-      </div>
-    </div>
-  </div>
-);
+    </>
+  );
+};
 
 export const getStaticProps: GetStaticProps = async ({ locale }) => {
-  const allChaptersData = getAllChaptersData(locale);
+  const allChaptersData = await getAllChaptersData(locale);
 
   return {
     props: {
+      chaptersData: allChaptersData,
       chaptersResponse: {
         chapters: Object.keys(allChaptersData).map((chapterId) => {
           const chapterData = allChaptersData[chapterId];

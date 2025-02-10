@@ -1,20 +1,28 @@
-import QuestionMarkIcon from '../../../../public/icons/help-circle.svg';
+import classNames from 'classnames';
 
 import styles from './HelperTooltip.module.scss';
 
-import Tooltip from 'src/components/dls/Tooltip';
+import { ContentSide } from '@/dls/Popover';
+import HoverablePopover from '@/dls/Popover/HoverablePopover';
+import QuestionMarkIcon from '@/icons/help-circle.svg';
 
 interface HelperTooltipProps {
   children: React.ReactNode;
+  contentSide?: ContentSide;
+  iconClassName?: string;
 }
 
-const HelperTooltip = ({ children }: HelperTooltipProps) => {
+const HelperTooltip = ({ children, contentSide, iconClassName }: HelperTooltipProps) => {
   return (
-    <Tooltip text={children}>
-      <span className={styles.questionMarkIconContainer}>
+    <HoverablePopover
+      triggerStyles={styles.trigger}
+      content={<span className={styles.content}>{children}</span>}
+      contentSide={contentSide}
+    >
+      <span className={classNames(iconClassName, styles.questionMarkIconContainer)}>
         <QuestionMarkIcon />
       </span>
-    </Tooltip>
+    </HoverablePopover>
   );
 };
 

@@ -1,11 +1,12 @@
+/* eslint-disable jsx-a11y/control-has-associated-label */
 /* eslint-disable max-lines */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/mouse-events-have-key-events */
 import React, { MouseEvent, useState, useCallback, RefObject, useEffect } from 'react';
 
 import classNames from 'classnames';
-import useTranslation from 'next-translate/useTranslation';
 import { useRouter } from 'next/router';
+import useTranslation from 'next-translate/useTranslation';
 import { useHotkeys } from 'react-hotkeys-hook';
 import { useDispatch } from 'react-redux';
 
@@ -13,13 +14,14 @@ import CommandControl from './CommandControl';
 import styles from './CommandList.module.scss';
 import CommandPrefix from './CommandPrefix';
 
-import useScroll, { SMOOTH_SCROLL_TO_CENTER } from 'src/hooks/useScrollToElement';
+import useScroll, { SMOOTH_SCROLL_TO_CENTER } from '@/hooks/useScrollToElement';
 import {
   addRecentNavigation,
   removeRecentNavigation,
   setIsOpen,
-} from 'src/redux/slices/CommandBar/state';
-import { resolveUrlBySearchNavigationType } from 'src/utils/navigation';
+} from '@/redux/slices/CommandBar/state';
+import { logButtonClick } from '@/utils/eventLogger';
+import { resolveUrlBySearchNavigationType } from '@/utils/navigation';
 import { SearchNavigationResult } from 'types/SearchNavigationResult';
 
 export interface Command extends SearchNavigationResult {
@@ -85,7 +87,7 @@ const CommandsList: React.FC<Props> = ({ commandGroups: { groups, numberOfComman
     onUpKeyClicked,
     {
       enabled: numberOfCommands && selectedCommandIndex !== 0,
-      enableOnTags: ['INPUT'],
+      enableOnFormTags: ['INPUT'],
     },
     [scrollToSelectedCommand],
   );
@@ -94,7 +96,7 @@ const CommandsList: React.FC<Props> = ({ commandGroups: { groups, numberOfComman
     onDownKeyClicked,
     {
       enabled: numberOfCommands && selectedCommandIndex !== numberOfCommands - 1,
-      enableOnTags: ['INPUT'],
+      enableOnFormTags: ['INPUT'],
     },
     [scrollToSelectedCommand],
   );
@@ -112,13 +114,14 @@ const CommandsList: React.FC<Props> = ({ commandGroups: { groups, numberOfComman
       });
       navigateToLink(navigateTo);
     },
-    { enabled: selectedCommandIndex !== null, enableOnTags: ['INPUT'] },
+    { enabled: selectedCommandIndex !== null, enableOnFormTags: ['INPUT'] },
     [selectedCommandIndex, groups, navigateToLink],
   );
   const onRemoveCommandClicked = (
     event: MouseEvent<Element>,
     navigationItemKey: number | string,
   ) => {
+    logButtonClick('remove_command_bar_navigation');
     // to not allow the event to bubble up to the parent container
     event.stopPropagation();
     dispatch({ type: removeRecentNavigation.type, payload: navigationItemKey });
@@ -144,6 +147,7 @@ const CommandsList: React.FC<Props> = ({ commandGroups: { groups, numberOfComman
               </div>
               <ul role="group" aria-labelledby={commandGroup}>
                 {groups[commandGroup].map((command) => {
+                  const { name, resultType } = command;
                   const isSelected = selectedCommandIndex === command.index;
                   return (
                     <li
@@ -155,7 +159,7 @@ const CommandsList: React.FC<Props> = ({ commandGroups: { groups, numberOfComman
                       onClick={() => navigateToLink(command)}
                       onMouseOver={() => setSelectedCommandIndex(command.index)}
                     >
-                      <CommandPrefix name={command.name} />
+                      <CommandPrefix name={name} type={resultType} />
                       <div className={styles.keyboardInputContainer}>
                         <CommandControl
                           isClearable={command.isClearable}

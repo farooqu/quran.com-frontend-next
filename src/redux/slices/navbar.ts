@@ -1,12 +1,14 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { RootState } from 'src/redux/RootState';
+import { RootState } from '@/redux/RootState';
+import SliceName from '@/redux/types/SliceName';
 
 export enum SettingsView {
   Body = 'body',
   Translation = 'translation',
   Reciter = 'reciter',
   Tafsir = 'tafsir',
+  RepeatSettings = 'repeatSettings',
 }
 
 export type Navbar = {
@@ -26,7 +28,7 @@ const initialState: Navbar = {
 };
 
 export const navbarSlice = createSlice({
-  name: 'navbar',
+  name: SliceName.NAVBAR,
   initialState,
   reducers: {
     setIsVisible: (state: Navbar, action: PayloadAction<boolean>) => ({

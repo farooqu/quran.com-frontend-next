@@ -1,9 +1,12 @@
 {
+  "about-quran": "À propos du Coran",
   "ayat-ul-kursi": "Ayatul Kursi",
-  "yaseen": "Surah Yaseen",
-  "mulk": "Surah Al Mulk",
-  "rahman": "Surah Ar-Rahman",
-  "waqiah": "Surah Al Waqi'ah",
-  "kahf": "Surah Al Kahf",
-  "muzzammil": "Surah Al Muzzammil"
+  "kahf": "Al Kahf",
+  "mulk": "Al Mulk",
+  "muzzammil": "Al Muzzammil",
+  "qr": "Rejoignez le \"Ramadan de la réflexion\"",
+  "rahman": "Ar-Rahman",
+  "sunnah": "Ayahs sur la Sunnah",
+  "waqiah": "Al Waqi'ah",
+  "yaseen": "Yaseen"
 }

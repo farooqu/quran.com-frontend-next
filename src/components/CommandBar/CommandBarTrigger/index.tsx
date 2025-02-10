@@ -3,20 +3,22 @@ import React, { useCallback } from 'react';
 import useTranslation from 'next-translate/useTranslation';
 import { useDispatch } from 'react-redux';
 
-import IconSearch from '../../../../public/icons/search.svg';
-
 import styles from './CommandBarTrigger.module.scss';
 
-import KeyboardInput from 'src/components/dls/KeyboardInput';
-import TarteelVoiceSearchTrigger from 'src/components/TarteelVoiceSearch/Trigger';
-import { toggleIsOpen } from 'src/redux/slices/CommandBar/state';
+import TarteelVoiceSearchTrigger from '@/components/TarteelVoiceSearch/Trigger';
+import KeyboardInput from '@/dls/KeyboardInput';
+import IconSearch from '@/icons/search.svg';
+import { toggleIsOpen } from '@/redux/slices/CommandBar/state';
+import { logButtonClick } from '@/utils/eventLogger';
 
 const CommandBarTrigger: React.FC = () => {
   const { t } = useTranslation('common');
   const dispatch = useDispatch();
   const onClick = useCallback(() => {
+    logButtonClick('command_bar_homepage_trigger');
     dispatch({ type: toggleIsOpen.type });
   }, [dispatch]);
+
   return (
     <div
       role="button"
@@ -33,8 +35,13 @@ const CommandBarTrigger: React.FC = () => {
       </div>
       <div className={styles.actionsContainer}>
         <KeyboardInput meta keyboardKey="K" />
-        <div className={styles.searchButtonWrapper}>
-          <TarteelVoiceSearchTrigger isCommandBar />
+        <div className={styles.searchButtonWrapper} id="voice-search-trigger">
+          <TarteelVoiceSearchTrigger
+            isCommandBar
+            onClick={() => {
+              logButtonClick('command_bar_homepage_voice_search_trigger');
+            }}
+          />
         </div>
       </div>
     </div>

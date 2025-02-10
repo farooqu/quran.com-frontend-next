@@ -7,9 +7,8 @@ import NoResults from './NoResults';
 import PreInput from './PreInput';
 import styles from './SearchBodyContainer.module.scss';
 
-import Spinner, { SpinnerSize } from 'src/components/dls/Spinner/Spinner';
-import SearchResults from 'src/components/Search/SearchResults';
-import { getSearchQueryNavigationUrl } from 'src/utils/navigation';
+import SearchResults from '@/components/Search/SearchResults';
+import Spinner, { SpinnerSize } from '@/dls/Spinner/Spinner';
 import { SearchResponse } from 'types/ApiResponses';
 
 interface Props {
@@ -19,6 +18,7 @@ interface Props {
   hasError: boolean;
   searchResult: SearchResponse;
   onSearchKeywordClicked: (keyword: string) => void;
+  onSearchResultClicked?: () => void;
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
@@ -30,13 +30,13 @@ const SearchBodyContainer: React.FC<Props> = ({
   hasError,
   searchResult,
   onSearchKeywordClicked,
+  onSearchResultClicked,
   isSearchDrawer = true,
   currentPage,
   pageSize,
   onPageChange,
 }) => {
   const { t } = useTranslation('common');
-  const searchUrl = getSearchQueryNavigationUrl(searchQuery);
   const isEmptyResponse =
     searchResult &&
     searchResult.pagination.totalRecords === 0 &&
@@ -50,7 +50,7 @@ const SearchBodyContainer: React.FC<Props> = ({
       })}
     >
       {!searchQuery ? (
-        <PreInput onSearchKeywordClicked={onSearchKeywordClicked} />
+        <PreInput onSearchKeywordClicked={onSearchKeywordClicked} isSearchDrawer={isSearchDrawer} />
       ) : (
         <>
           {isSearching ? (
@@ -61,13 +61,10 @@ const SearchBodyContainer: React.FC<Props> = ({
               {!hasError && searchResult && (
                 <>
                   {isEmptyResponse ? (
-                    <NoResults
-                      searchQuery={searchQuery}
-                      searchUrl={searchUrl}
-                      isSearchDrawer={isSearchDrawer}
-                    />
+                    <NoResults searchQuery={searchQuery} />
                   ) : (
                     <SearchResults
+                      onSearchResultClicked={onSearchResultClicked}
                       searchResult={searchResult}
                       searchQuery={searchQuery}
                       isSearchDrawer={isSearchDrawer}

@@ -1,7 +1,7 @@
 .container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   font-size: var(--font-size-xsmall-dangerous);
 }
 
@@ -18,13 +18,6 @@
 
 .bold {
   font-weight: var(--font-weight-bold);
-}
-
-.separatorContainer {
-  margin-block-start: var(--spacing-xxsmall);
-  margin-block-end: var(--spacing-xxsmall);
-  margin-inline-start: 0;
-  margin-inline-end: 0;
 }
 
 .beta {

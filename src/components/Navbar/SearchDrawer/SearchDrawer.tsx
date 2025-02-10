@@ -1,35 +1,40 @@
+/* eslint-disable react-func/max-lines-per-function */
+/* eslint-disable max-lines */
 /* eslint-disable react/no-multi-comp */
-import React, { useEffect, useState, RefObject } from 'react';
+import React, { RefObject, useEffect, useState } from 'react';
 
 import dynamic from 'next/dynamic';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
 import SearchDrawerHeader from './Header';
 
-import { getSearchResults } from 'src/api';
-import Spinner from 'src/components/dls/Spinner/Spinner';
-import Drawer, { DrawerType } from 'src/components/Navbar/Drawer';
-import useDebounce from 'src/hooks/useDebounce';
-import useFocus from 'src/hooks/useFocusElement';
-import { selectNavbar } from 'src/redux/slices/navbar';
-import { selectSelectedTranslations } from 'src/redux/slices/QuranReader/translations';
-import { addSearchHistoryRecord } from 'src/redux/slices/Search/search';
-import { selectIsSearchDrawerVoiceFlowStarted } from 'src/redux/slices/voiceSearch';
-import { areArraysEqual } from 'src/utils/array';
+import Drawer, { DrawerType } from '@/components/Navbar/Drawer';
+import Spinner from '@/dls/Spinner/Spinner';
+import useDebounce from '@/hooks/useDebounce';
+import useFocus from '@/hooks/useFocusElement';
+import { selectNavbar } from '@/redux/slices/navbar';
+import { selectSelectedTranslations } from '@/redux/slices/QuranReader/translations';
+import { selectIsSearchDrawerVoiceFlowStarted } from '@/redux/slices/voiceSearch';
+import SearchQuerySource from '@/types/SearchQuerySource';
+import { areArraysEqual } from '@/utils/array';
+import { logButtonClick } from '@/utils/eventLogger';
+import { addToSearchHistory, searchGetResults } from '@/utils/search';
 import { SearchResponse } from 'types/ApiResponses';
 
-const SearchBodyContainer = dynamic(() => import('src/components/Search/SearchBodyContainer'), {
+const SearchBodyContainer = dynamic(() => import('@/components/Search/SearchBodyContainer'), {
   ssr: false,
   loading: () => <Spinner />,
 });
 const VoiceSearchBodyContainer = dynamic(
-  () => import('src/components/TarteelVoiceSearch/BodyContainer'),
+  () => import('@/components/TarteelVoiceSearch/BodyContainer'),
   {
     ssr: false,
     loading: () => <Spinner />,
   },
 );
 
+const FIRST_PAGE_NUMBER = 1;
+const PAGE_SIZE = 10;
 const DEBOUNCING_PERIOD_MS = 1000;
 
 const SearchDrawer: React.FC = () => {
@@ -51,39 +56,26 @@ const SearchDrawer: React.FC = () => {
     }
   }, [isOpen, focusInput]);
 
-  // This useEffect is triggered when the debouncedSearchQuery value changes
   useEffect(() => {
     // only when the search query has a value we call the API.
     if (debouncedSearchQuery) {
-      dispatch({ type: addSearchHistoryRecord.type, payload: debouncedSearchQuery });
-      setIsSearching(true);
-      getSearchResults({
-        query: debouncedSearchQuery,
-        ...(selectedTranslations &&
-          !!selectedTranslations.length && {
-            filterTranslations: selectedTranslations.join(','),
-          }),
-      })
-        .then((response) => {
-          if (response.status === 500) {
-            setHasError(true);
-          } else {
-            setSearchResult(response);
-          }
-        })
-        .catch(() => {
-          setHasError(true);
-        })
-        .finally(() => {
-          setIsSearching(false);
-        });
-    } else {
-      // reset the result
-      setSearchResult(null);
+      addToSearchHistory(dispatch, debouncedSearchQuery, SearchQuerySource.SearchDrawer);
+      searchGetResults(
+        SearchQuerySource.SearchDrawer,
+        debouncedSearchQuery,
+        FIRST_PAGE_NUMBER,
+        PAGE_SIZE,
+        setIsSearching,
+        setHasError,
+        setSearchResult,
+        null,
+        selectedTranslations?.length && selectedTranslations.join(','),
+      );
     }
   }, [debouncedSearchQuery, selectedTranslations, dispatch]);
 
   const resetQueryAndResults = () => {
+    logButtonClick('search_drawer_clear_input');
     // reset the search query
     setSearchQuery('');
     // reset the result
@@ -142,6 +134,7 @@ const SearchDrawer: React.FC = () => {
               <VoiceSearchBodyContainer />
             ) : (
               <SearchBodyContainer
+                onSearchResultClicked={() => searchInputRef?.current?.blur()}
                 onSearchKeywordClicked={onSearchKeywordClicked}
                 searchQuery={searchQuery}
                 searchResult={searchResult}

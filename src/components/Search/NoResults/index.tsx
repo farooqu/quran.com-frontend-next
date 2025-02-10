@@ -2,19 +2,15 @@ import React from 'react';
 
 import useTranslation from 'next-translate/useTranslation';
 
-import IconSearch from '../../../../public/icons/search.svg';
-
 import styles from './NoResults.module.scss';
 
-import AdvancedSearchLink from 'src/components/Navbar/SearchDrawer/AdvancedSearchLink';
+import IconSearch from '@/icons/search.svg';
 
 interface Props {
-  searchUrl?: string;
   searchQuery: string;
-  isSearchDrawer: boolean;
 }
 
-const NoResults: React.FC<Props> = ({ searchQuery, searchUrl = '', isSearchDrawer }) => {
+const NoResults: React.FC<Props> = ({ searchQuery }) => {
   const { t } = useTranslation('common');
   return (
     <>
@@ -29,7 +25,6 @@ const NoResults: React.FC<Props> = ({ searchQuery, searchUrl = '', isSearchDrawe
           </p>
         </div>
       </div>
-      {isSearchDrawer && <AdvancedSearchLink searchUrl={searchUrl} />}
     </>
   );
 };

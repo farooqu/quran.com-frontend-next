@@ -8,7 +8,7 @@
 
   --color-secondary-faded: #eaeaea;
   --color-secondary-faint: #999;
-  --color-secondary-medium: #eaeaea; // temporary placeholder for the beta.
+  --color-secondary-medium: #f2f2f2; // temporary placeholder for the beta.
   --color-secondary-deep: #333;
 
   --color-success-faded: #ebf9fa;
@@ -21,9 +21,9 @@
   --color-error-medium: #ee0102;
   --color-error-deep: #c50000;
 
-  --color-warning-faded: #ffefcf;
-  --color-warning-faint: #f7b955;
-  --color-warning-medium: #f5a623;
+  --color-warning-faded: #fef3dc;
+  --color-warning-faint: #ffdfaa;
+  --color-warning-medium: #ffb300;
   --color-warning-deep: #ab570a;
 
   --color-text-default: #272727;
@@ -42,7 +42,7 @@
   --color-background-alternative-deep: var(--shade-6);
 
   --color-background-inverse: #000;
-  --color-background-backdrop: rgba(0, 0, 0, 0.25);
+  --color-background-backdrop: rgba(0, 0, 0, 0.6);
   --color-background-lighten: hsla(0, 0%, 100%, 0.8);
   // lighten the `background-color` by using it in `background-image`. check Button's ghost variant for example
 
@@ -57,4 +57,11 @@
   --shadow-jumbo: 0 30px 60px rgba(0, 0, 0, 0.12);
   --shadow-hover: 0 30px 60px rgba(0, 0, 0, 0.12);
   --shadow-sticky: 0 12px 10px -10px rgba(0, 0, 0, 0.12);
+  font-palette: --Light;
+
+  // scrollbar styles
+  --scrollbar-background: var(--shade-2);
+  --scrollbar-thumb: var(--shade-4);
+  --scrollbar-thumb-hover: var(--shade-6);
+  --scrollbar-thumb-active: var(--shade-7);
 }

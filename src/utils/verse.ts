@@ -1,8 +1,12 @@
+/* eslint-disable max-lines */
 /* eslint-disable react-func/max-lines-per-function */
 import range from 'lodash/range';
 
-import { getAllChaptersData, getChapterData } from './chapter';
+import { getChapterData } from './chapter';
+import { formatStringNumber } from './number';
+import { parseVerseRange } from './verseKeys';
 
+import ChaptersData from 'types/ChaptersData';
 import Verse from 'types/Verse';
 import Word from 'types/Word';
 
@@ -11,13 +15,20 @@ const COLON_SPLITTER = ':';
 /**
  * This will generate all the keys for the verses of a chapter. a key is `{chapterId}:{verseId}`.
  *
+ * @param {ChaptersData} data
  * @param {string} chapterId
+ * @param {boolean} hideChapterId
  * @returns {string[]}
  */
-export const generateChapterVersesKeys = (chapterId: string): string[] => {
-  const data = getAllChaptersData();
-
-  return range(data[chapterId].versesCount).map((verseId) => `${chapterId}:${verseId + 1}`);
+export const generateChapterVersesKeys = (
+  data: ChaptersData,
+  chapterId: string,
+  hideChapterId?: boolean,
+): string[] => {
+  const chapterNumberString = formatStringNumber(chapterId);
+  return range(data[chapterNumberString]?.versesCount).map((verseId) =>
+    hideChapterId ? `${verseId + 1}` : `${chapterNumberString}:${verseId + 1}`,
+  );
 };
 
 /**
@@ -39,6 +50,23 @@ export const getChapterNumberFromKey = (verseKey: string): number =>
  */
 export const getVerseNumberFromKey = (verseKey: string): number =>
   Number(verseKey.split(COLON_SPLITTER)[1]);
+
+/**
+ * If the verse is a range of verses, for example 1:3-5
+ * we'll return {surah: 1, from: 3, to: 5}
+ *
+ * @param {string} verseKey
+ * @returns {surah: number, from: Number, to: Number}
+ */
+export const getVerseNumberRangeFromKey = (
+  verseKey: string,
+): { surah: number; from: number; to: number } => {
+  const splits = verseKey.split(COLON_SPLITTER);
+  const surahNumber = splits[0];
+  const verseNumber = splits[1]; // for example (3-5)
+  const [from, to] = verseNumber.split('-'); // for example [3, 5]
+  return { surah: Number(surahNumber), from: Number(from), to: to ? Number(to) : Number(from) };
+};
 
 /**
  * Get the chapter and verse number of a verse from its key.
@@ -178,13 +206,22 @@ export const sortVersesObjectByVerseKeys = (object: Record<string, any>): Record
 /**
  * make verseKey from chapterNumber and verseNumber, example "1:5"
  *
- * @param {number} chapterNumber
- * @param {number} verseNumber
- * @returns
+ * @param {number|string} chapterNumber
+ * @param {number|string} verseNumberOrRangeFrom
+ * @param {number|string} rangeTo
+ * @returns {string}
  */
+export const makeVerseKey = (
+  chapterNumber: number | string,
+  verseNumberOrRangeFrom: number | string,
+  rangeTo?: number | string,
+): string => {
+  if (rangeTo && verseNumberOrRangeFrom !== rangeTo) {
+    return `${chapterNumber}:${verseNumberOrRangeFrom}-${rangeTo}`;
+  }
 
-export const makeVerseKey = (chapterNumber: number, verseNumber: number): string =>
-  `${chapterNumber}:${verseNumber}`;
+  return `${chapterNumber}:${verseNumberOrRangeFrom}`;
+};
 
 /**
  * make wordLocation from verseKey and wordPosition, example "1:1:2"
@@ -201,12 +238,18 @@ export const makeWordLocation = (verseKey: string, wordPosition: number): string
  * the BE response of each word to add custom fields.
  *
  * @param {Verse} verse
+ * @param {boolean} isReadingView
  * @returns {Word[]}
  */
-export const getVerseWords = (verse: Verse): Word[] => {
+export const getVerseWords = (verse: Verse, isReadingView = false): Word[] => {
   const words = [];
   verse.words.forEach((word) => {
-    words.push({ ...word, hizbNumber: verse.hizbNumber });
+    const wordVerse = { ...verse };
+    words.push({
+      ...word,
+      hizbNumber: verse.hizbNumber,
+      ...(isReadingView && { verse: wordVerse }),
+    });
   });
   return words;
 };
@@ -214,14 +257,19 @@ export const getVerseWords = (verse: Verse): Word[] => {
 /**
  * Calculate the number of verses in a range of chapters.
  *
+ * @param {ChaptersData} chaptersData
  * @param {number} startChapter
  * @param {number} endChapter
  * @returns {number}
  */
-const getNumberOfVersesInRangeOfChapters = (startChapter: number, endChapter: number): number => {
+const getNumberOfVersesInRangeOfChapters = (
+  chaptersData: ChaptersData,
+  startChapter: number,
+  endChapter: number,
+): number => {
   let total = 0;
   for (let currentChapterId = startChapter; currentChapterId < endChapter; currentChapterId += 1) {
-    total += getChapterData(String(currentChapterId)).versesCount;
+    total += getChapterData(chaptersData, String(currentChapterId)).versesCount;
   }
   return total;
 };
@@ -230,12 +278,17 @@ const getNumberOfVersesInRangeOfChapters = (startChapter: number, endChapter: nu
  * Calculate how far apart 2 verses are from each other. The order of the verses
  * won't matter as we swap them if they are not in the same order of the Mushaf.
  *
+ * @param {ChaptersData} chaptersData
  * @param {string} firstVerseKey
  * @param {string} secondVerseKey
  *
  * @returns {number}
  */
-export const getDistanceBetweenVerses = (firstVerseKey: string, secondVerseKey: string): number => {
+export const getDistanceBetweenVerses = (
+  chaptersData: ChaptersData,
+  firstVerseKey: string,
+  secondVerseKey: string,
+): number => {
   // eslint-disable-next-line prefer-const
   let [firstChapterString, firstVerseNumberString] =
     getVerseAndChapterNumbersFromKey(firstVerseKey);
@@ -271,14 +324,21 @@ export const getDistanceBetweenVerses = (firstVerseKey: string, secondVerseKey: 
   let distance = 0;
   // if there is more than 1 full chapter in between the verses' chapters being checked, we sum the number of verses in each chapter.
   if (secondChapterNumber - firstChapterNumber > 1) {
-    distance += getNumberOfVersesInRangeOfChapters(firstChapterNumber + 1, secondChapterNumber);
+    distance += getNumberOfVersesInRangeOfChapters(
+      chaptersData,
+      firstChapterNumber + 1,
+      secondChapterNumber,
+    );
   }
   /*
     1. we add the number of verses from beginning of the second verse's chapter -> the verse itself.
     2. we add the difference between the last verse of the first verse's chapter and the first verse itself.
   */
   return (
-    distance + secondVerseNumber + getChapterData(firstChapterString).versesCount - firstVerseNumber
+    distance +
+    secondVerseNumber +
+    getChapterData(chaptersData, firstChapterString).versesCount -
+    firstVerseNumber
   );
 };
 
@@ -293,15 +353,22 @@ export const isFirstVerseOfSurah = (verseNumber: number): boolean => verseNumber
 /**
  * Whether the current verse is the last in surah.
  *
+ * @param {ChaptersData} chaptersData
  * @param {string} chapterNumber
  * @param {number} verseNumber
  * @returns {boolean}
  */
-export const isLastVerseOfSurah = (chapterNumber: string, verseNumber: number): boolean =>
-  verseNumber === getChapterData(chapterNumber).versesCount;
+export const isLastVerseOfSurah = (
+  chaptersData: ChaptersData,
+  chapterNumber: string,
+  verseNumber: number,
+): boolean => verseNumber === getChapterData(chaptersData, chapterNumber).versesCount;
 
-export const getChapterFirstAndLastVerseKey = (chapterId: string) => {
-  const chapterData = getChapterData(chapterId);
+export const getChapterFirstAndLastVerseKey = (chaptersData: ChaptersData, chapterId: string) => {
+  if (!chaptersData) {
+    return ['', ''];
+  }
+  const chapterData = getChapterData(chaptersData, chapterId);
   return [
     makeVerseKey(Number(chapterId), 1),
     makeVerseKey(Number(chapterId), chapterData.versesCount),
@@ -328,4 +395,66 @@ export const shortenVerseText = (text: string, length = 150): string => {
     shortenedText = `${shortenedText}${character}`;
   }
   return shortenedText;
+};
+
+/**
+ * Given list of verses, get all the first and the last verseKeys
+ *
+ * @param {Record<string, Verse>} verses
+ * @returns {string[]} [firstVerseKey, lastVerseKey]
+ */
+export const getFirstAndLastVerseKeys = (verses: Record<string, Verse>): string[] => {
+  const verseKeys = Object.keys(verses).sort(sortByVerseKey);
+  return [verseKeys[0], verseKeys[verseKeys.length - 1]];
+};
+
+/**
+ * This function checks if a verse key is within a range or an array of ranges.
+ *
+ * Examples:
+ * - `isVerseKeyWithinRanges('1:1', '1:1-1:7')` -> `true`
+ * - `isVerseKeyWithinRanges('1:1', '1:2-1:7')` -> `false`
+ * - `isVerseKeyWithinRanges('2:4', ['1:1-1:7', '2:1-2:5'])` -> `true`
+ * - `isVerseKeyWithinRanges('2:10', ['1:2-1:7', '2:1-2:5'])` -> `false`
+ *
+ * @param {string} verseKey - verse key, e.g. 1:1
+ * @param {string[] | string} ranges - verse range or array of verse ranges, e.g. `1:1-1:7` or `['1:1-1:7', '2:1-2:5']`
+ * @returns {boolean}
+ */
+export const isVerseKeyWithinRanges = (verseKey: string, ranges: string[] | string) => {
+  const [chapter, verse] = getVerseAndChapterNumbersFromKey(verseKey).map(Number);
+  const rangesArray = Array.isArray(ranges) ? ranges : [ranges];
+
+  for (let i = 0; i < rangesArray.length; i += 1) {
+    const verseRange = rangesArray[i];
+    const [from, to] = parseVerseRange(verseRange, true);
+
+    // if the chapter is less than or greater than the range, then skip this range
+    if (chapter < from.chapter || chapter > to.chapter) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    // if the chapter is equal to the chapter of the range start, then check if the verse is within the range
+    // if the verse is less than the range, then skip this range
+    if (chapter === from.chapter && verse < from.verse) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    // if the chapter is equal to the chapter of the range end, then check if the verse is within the range
+    // if the verse is greater than the range, then skip this range
+    if (chapter === to.chapter && verse > to.verse) {
+      // eslint-disable-next-line no-continue
+      continue;
+    }
+
+    // if we're here, it means that the verse is within the range
+    // so we can return true directly and end the loop
+    return true;
+  }
+
+  // if we're here, it means that the verse is not within any of the ranges
+  // so we can return false
+  return false;
 };

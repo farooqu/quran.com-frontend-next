@@ -1,24 +1,23 @@
-import Image from 'next/image';
-
-import quranKarimLogo from '../../../public/images/quran-karim-logo.png';
+import dynamic from 'next/dynamic';
+import Head from 'next/head';
 
 import styles from './HomePageHero.module.scss';
-import PrayerTimes from './PrayerTimes/PrayerTimes';
 import QuickLinks from './QuickLinks';
 
-import CommandBarTrigger from 'src/components/CommandBar/CommandBarTrigger';
+import CommandBarTrigger from '@/components/CommandBar/CommandBarTrigger';
+
+const PlayRadioButton = dynamic(() => import('./PlayRadioButton'));
 
 const HomePageHero = () => {
   return (
     <div className={styles.outerContainer}>
+      <Head>
+        <link rel="preload" as="image" href="/images/background.jpg" />
+      </Head>
       <div className={styles.backgroundImage} />
       <div data-theme="light">
-        <PrayerTimes />
+        <PlayRadioButton />
         <div className={styles.innerContainer}>
-          <div className={styles.imageContainer}>
-            <Image className={styles.homepageImage} src={quranKarimLogo} priority />
-          </div>
-
           <CommandBarTrigger />
           <div className={styles.quickLinksContainer}>
             <QuickLinks />

@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import useTranslation from 'next-translate/useTranslation';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
@@ -6,38 +6,37 @@ import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import Section from './Section';
 import styles from './TafsirSection.module.scss';
 
-import DataFetcher from 'src/components/DataFetcher';
-import Counter from 'src/components/dls/Counter/Counter';
-import SelectionCard from 'src/components/dls/SelectionCard/SelectionCard';
-import Skeleton from 'src/components/dls/Skeleton/Skeleton';
-import { setSettingsView, SettingsView } from 'src/redux/slices/navbar';
+import DataFetcher from '@/components/DataFetcher';
+import Counter from '@/dls/Counter/Counter';
+import SelectionCard from '@/dls/SelectionCard/SelectionCard';
+import Skeleton from '@/dls/Skeleton/Skeleton';
+import { setSettingsView, SettingsView } from '@/redux/slices/navbar';
 import {
-  MAXIMUM_FONT_STEP,
+  MAXIMUM_TAFSIR_FONT_STEP,
   MINIMUM_FONT_STEP,
   selectQuranReaderStyles,
   increaseTafsirFontScale,
   decreaseTafsirFontScale,
-} from 'src/redux/slices/QuranReader/styles';
-import { selectSelectedTafsirs } from 'src/redux/slices/QuranReader/tafsirs';
-import QuranReaderStyles from 'src/redux/types/QuranReaderStyles';
-import { makeTafsirsUrl } from 'src/utils/apiPaths';
-import { areArraysEqual } from 'src/utils/array';
+} from '@/redux/slices/QuranReader/styles';
+import { selectSelectedTafsirs } from '@/redux/slices/QuranReader/tafsirs';
+import { makeTafsirsUrl } from '@/utils/apiPaths';
+import { areArraysEqual } from '@/utils/array';
+import { logValueChange } from '@/utils/eventLogger';
+import { toLocalizedNumber } from '@/utils/locale';
 import { TafsirsResponse } from 'types/ApiResponses';
 
 const TafsirSection = () => {
   const { t, lang } = useTranslation('common');
   const dispatch = useDispatch();
-  const quranReaderStyles = useSelector(selectQuranReaderStyles, shallowEqual) as QuranReaderStyles;
+  const quranReaderStyles = useSelector(selectQuranReaderStyles, shallowEqual);
   const { tafsirFontScale } = quranReaderStyles;
-  const selectedTafsirs = useSelector(selectSelectedTafsirs, areArraysEqual);
+  const selectedTafsirs = useSelector(selectSelectedTafsirs, areArraysEqual) as string[];
 
   const tafsirLoading = useCallback(
     () => (
       <div>
         {selectedTafsirs.map((id) => (
-          <Skeleton key={id}>
-            <div>{id}</div>
-          </Skeleton>
+          <Skeleton className={styles.skeleton} key={id} />
         ))}
       </div>
     ),
@@ -45,29 +44,54 @@ const TafsirSection = () => {
     [selectedTafsirs.length],
   );
 
+  const localizedSelectedTafsirs = useMemo(
+    () => toLocalizedNumber(selectedTafsirs.length - 1, lang),
+    [selectedTafsirs, lang],
+  );
+
+  const onSelectionCardClicked = useCallback(() => {
+    dispatch(setSettingsView(SettingsView.Tafsir));
+    logValueChange('settings_view', SettingsView.Tafsir, SettingsView.Body);
+  }, [dispatch]);
   const renderTafsirs = useCallback(
     (data: TafsirsResponse) => {
-      const firstSelectedTafsir = data.tafsirs.find((tafsir) => tafsir.id === selectedTafsirs[0]);
+      const firstSelectedTafsir = data.tafsirs.find((tafsir) => tafsir.slug === selectedTafsirs[0]);
 
       let selectedValueString = t('settings.no-tafsir-selected');
       if (selectedTafsirs.length === 1) selectedValueString = firstSelectedTafsir.name;
-      if (selectedTafsirs.length > 1)
+      if (selectedTafsirs.length === 2) {
+        selectedValueString = t('settings.value-and-other', {
+          value: firstSelectedTafsir.name,
+          othersCount: localizedSelectedTafsirs,
+        });
+      }
+      if (selectedTafsirs.length > 2) {
         selectedValueString = t('settings.value-and-others', {
           value: firstSelectedTafsir.name,
-          othersCount: selectedTafsirs.length - 1,
+          othersCount: localizedSelectedTafsirs,
         });
+      }
 
       return (
         <SelectionCard
           label={t('settings.selected-tafsirs')}
           value={selectedValueString}
-          onClick={() => dispatch(setSettingsView(SettingsView.Tafsir))}
+          onClick={onSelectionCardClicked}
         />
       );
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedTafsirs.length],
+    [t, selectedTafsirs, localizedSelectedTafsirs, onSelectionCardClicked],
   );
+
+  const onFontScaleDecreaseClicked = () => {
+    logValueChange('tafsir_font_scale', tafsirFontScale, tafsirFontScale - 1);
+    dispatch(decreaseTafsirFontScale());
+  };
+
+  const onFontScaleIncreaseClicked = () => {
+    logValueChange('tafsir_font_scale', tafsirFontScale, tafsirFontScale + 1);
+    dispatch(increaseTafsirFontScale());
+  };
 
   return (
     <div className={styles.container}>
@@ -84,15 +108,9 @@ const TafsirSection = () => {
           <Section.Label>{t('tafsir.font-size')}</Section.Label>
           <Counter
             count={tafsirFontScale}
-            onDecrement={
-              tafsirFontScale === MINIMUM_FONT_STEP
-                ? null
-                : () => dispatch(decreaseTafsirFontScale())
-            }
+            onDecrement={tafsirFontScale === MINIMUM_FONT_STEP ? null : onFontScaleDecreaseClicked}
             onIncrement={
-              tafsirFontScale === MAXIMUM_FONT_STEP
-                ? null
-                : () => dispatch(increaseTafsirFontScale())
+              tafsirFontScale === MAXIMUM_TAFSIR_FONT_STEP ? null : onFontScaleIncreaseClicked
             }
           />
         </Section.Row>

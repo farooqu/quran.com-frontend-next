@@ -1,33 +1,45 @@
-import React, { useState, useCallback } from 'react';
+/* eslint-disable max-lines */
+import React, { useState, useCallback, useEffect } from 'react';
 
 import classNames from 'classnames';
 import groupBy from 'lodash/groupBy';
 import useTranslation from 'next-translate/useTranslation';
 import { shallowEqual, useSelector } from 'react-redux';
 
-import IconSearch from '../../../../public/icons/search.svg';
 import CommandsList, { Command } from '../CommandsList';
 
 import styles from './CommandBarBody.module.scss';
 
-import DataFetcher from 'src/components/DataFetcher';
-import Link, { LinkVariant } from 'src/components/dls/Link/Link';
-import VoiceSearchBodyContainer from 'src/components/TarteelVoiceSearch/BodyContainer';
-import TarteelVoiceSearchTrigger from 'src/components/TarteelVoiceSearch/Trigger';
-import { selectRecentNavigations } from 'src/redux/slices/CommandBar/state';
-import { selectIsCommandBarVoiceFlowStarted } from 'src/redux/slices/voiceSearch';
-import { makeSearchResultsUrl } from 'src/utils/apiPaths';
-import { areArraysEqual } from 'src/utils/array';
-import { shortenVerseText } from 'src/utils/verse';
-import { getVerseTextByWords } from 'src/utils/word';
+import DataFetcher from '@/components/DataFetcher';
+import TarteelAttribution from '@/components/TarteelAttribution/TarteelAttribution';
+import VoiceSearchBodyContainer from '@/components/TarteelVoiceSearch/BodyContainer';
+import TarteelVoiceSearchTrigger from '@/components/TarteelVoiceSearch/Trigger';
+import useDebounce from '@/hooks/useDebounce';
+import IconSearch from '@/icons/search.svg';
+import { selectRecentNavigations } from '@/redux/slices/CommandBar/state';
+import { selectIsCommandBarVoiceFlowStarted } from '@/redux/slices/voiceSearch';
+import { SearchNavigationResult, SearchNavigationType } from '@/types/SearchNavigationResult';
+import SearchQuerySource from '@/types/SearchQuerySource';
+import { makeSearchResultsUrl } from '@/utils/apiPaths';
+import { areArraysEqual } from '@/utils/array';
+import { logButtonClick, logTextSearchQuery } from '@/utils/eventLogger';
 import { SearchResponse } from 'types/ApiResponses';
-import { SearchNavigationType } from 'types/SearchNavigationResult';
 
 const NAVIGATE_TO = [
   {
     name: 'Juz 1',
     key: 1,
     resultType: SearchNavigationType.JUZ,
+  },
+  {
+    name: 'Hizb 1',
+    key: 1,
+    resultType: SearchNavigationType.HIZB,
+  },
+  {
+    name: 'Rub el Hizb 1',
+    key: 1,
+    resultType: SearchNavigationType.RUB_EL_HIZB,
   },
   {
     name: 'Page 1',
@@ -46,11 +58,26 @@ const NAVIGATE_TO = [
   },
 ];
 
+const DEBOUNCING_PERIOD_MS = 1500;
+
 const CommandBarBody: React.FC = () => {
   const { t } = useTranslation('common');
-  const recentNavigations = useSelector(selectRecentNavigations, areArraysEqual);
+  const recentNavigations = useSelector(
+    selectRecentNavigations,
+    areArraysEqual,
+  ) as SearchNavigationResult[];
   const isVoiceSearchFlowStarted = useSelector(selectIsCommandBarVoiceFlowStarted, shallowEqual);
   const [searchQuery, setSearchQuery] = useState<string>(null);
+  // Debounce search query to avoid having to call the API on every type. The API will be called once the user stops typing.
+  const debouncedSearchQuery = useDebounce<string>(searchQuery, DEBOUNCING_PERIOD_MS);
+
+  useEffect(() => {
+    // only when the search query has a value we call the API.
+    if (debouncedSearchQuery) {
+      logTextSearchQuery(debouncedSearchQuery, SearchQuerySource.CommandBar);
+    }
+  }, [debouncedSearchQuery]);
+
   /**
    * Handle when the search query is changed.
    *
@@ -58,8 +85,7 @@ const CommandBarBody: React.FC = () => {
    * @returns {void}
    */
   const onSearchQueryChange = useCallback((event: React.FormEvent<HTMLInputElement>): void => {
-    const newSearchQuery = event.currentTarget.value;
-    setSearchQuery(newSearchQuery || null);
+    setSearchQuery(event.currentTarget.value || null);
   }, []);
 
   /**
@@ -115,16 +141,14 @@ const CommandBarBody: React.FC = () => {
             ...navigationItem,
             group: t('command-bar.navigations'),
           })),
-          ...data.result.verses.map((verse) => {
-            return {
-              key: verse.verseKey,
-              resultType: SearchNavigationType.AYAH,
-              name: `[${verse.verseKey}] ${shortenVerseText(getVerseTextByWords(verse))}`,
-              group: t('verses'),
-            };
-          }),
+          {
+            key: searchQuery,
+            resultType: SearchNavigationType.SEARCH_PAGE,
+            name: searchQuery,
+            group: t('search.title'),
+          },
         ];
-        numberOfCommands = data.result.navigation.length + data.result.verses.length;
+        numberOfCommands = data.result.navigation.length + 1;
       }
       return (
         <CommandsList
@@ -138,7 +162,7 @@ const CommandBarBody: React.FC = () => {
         />
       );
     },
-    [getPreInputCommands, recentNavigations, t],
+    [getPreInputCommands, recentNavigations.length, searchQuery, t],
   );
 
   return (
@@ -162,7 +186,15 @@ const CommandBarBody: React.FC = () => {
             />
           </div>
         )}
-        <TarteelVoiceSearchTrigger isCommandBar />
+        <TarteelVoiceSearchTrigger
+          isCommandBar
+          onClick={(startFlow: boolean) => {
+            logButtonClick(
+              // eslint-disable-next-line i18next/no-literal-string
+              `command_bar_voice_search_${startFlow ? 'start' : 'stop'}_flow`,
+            );
+          }}
+        />
       </div>
       <div className={styles.bodyContainer}>
         {isVoiceSearchFlowStarted ? (
@@ -174,11 +206,8 @@ const CommandBarBody: React.FC = () => {
           />
         )}
       </div>
-
-      <div className={styles.poweredBy}>
-        <Link variant={LinkVariant.Primary} newTab href="https://download.tarteel.ai/">{`${t(
-          'command-bar.powered-by',
-        )} `}</Link>
+      <div className={styles.attribution}>
+        <TarteelAttribution isCommandBar />
       </div>
     </div>
   );
