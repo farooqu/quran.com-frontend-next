@@ -1,12 +1,10 @@
 import React from 'react';
 
-import Trans from 'next-translate/Trans';
 import useTranslation from 'next-translate/useTranslation';
-import Link from 'next/link';
 
 import Section from './Section';
 
-import { isQCFFont } from 'src/utils/fontFaceHelper';
+import { isQCFFont, quranFontToVersion, QCFFontVersion } from '@/utils/fontFaceHelper';
 import { QuranFont } from 'types/QuranReader';
 
 interface Props {
@@ -15,14 +13,11 @@ interface Props {
 
 const QuranFontSectionFooter: React.FC<Props> = ({ quranFont }) => {
   const { t } = useTranslation('common');
-  const isTajweed = quranFont === QuranFont.Tajweed;
   return (
-    <Section.Footer visible={isQCFFont(quranFont) || isTajweed}>
-      {isTajweed ? (
-        <Trans i18nKey="common:fonts.tajweed-desc" components={[<Link href="/tajweed-colors" />]} />
-      ) : (
-        t('fonts.qcf-desc')
-      )}
+    <Section.Footer visible={isQCFFont(quranFont)}>
+      {quranFontToVersion(quranFont) === QCFFontVersion.V4
+        ? t('fonts.qcf-v4-desc')
+        : t('fonts.qcf-desc')}
     </Section.Footer>
   );
 };

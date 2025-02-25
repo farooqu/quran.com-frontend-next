@@ -1,14 +1,10 @@
+@use "src/styles/theme";
+
 .container {
-  background: var(--color-background-default);
-  border: 1px solid var(--color-background-alternative-deep);
-  border-radius: var(--border-radius-default);
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  &:hover {
-    border: 1px solid var(--color-primary-medium);
-  }
   &.fixedWidth {
     width: calc(8 * var(--spacing-mega));
   }
@@ -18,6 +14,7 @@
     pointer-events: none;
     cursor: not-allowed;
   }
+  border: 1px solid var(--color-borders-hairline);
   &.error {
     border-color: var(--color-error-deep);
   }
@@ -26,6 +23,25 @@
   }
   &.warning {
     border-color: var(--color-warning-medium);
+  }
+  border-radius: var(--border-radius-rounded);
+  padding-inline: var(--spacing-small);
+}
+
+.main {
+  padding-inline: var(--spacing-xsmall);
+  padding-block: var(--spacing-xsmall);
+
+  & .input {
+    font-size: var(--font-size-large);
+    color: var(--color-text-default);
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+.rtlInput {
+  [dir="rtl"] & {
+    direction: rtl;
   }
 }
 
@@ -57,7 +73,7 @@
   width: 100%;
   font-size: var(--font-size-normal);
   color: var(--color-text-default);
-  background: var(--color-background-default);
+  background: transparent;
   &:focus {
     outline: none;
   }
@@ -72,6 +88,16 @@
   }
   &.warning {
     color: var(--color-warning-medium);
+  }
+
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus,
+  &:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px transparent inset !important;
+    -webkit-text-fill-color: var(--color-text-default) !important;
+    transition: background-color 5000s ease-in-out 0s;
+    background-color: transparent !important;
   }
 }
 
@@ -109,14 +135,4 @@
   border-end-start-radius: var(--border-radius-default);
   padding-inline-start: var(--spacing-xsmall);
   padding-inline-end: var(--spacing-xxsmall);
-}
-
-.suffix {
-  border-inline-start: 1px solid var(--color-background-alternative-deep);
-  border-start-end-radius: var(--border-radius-default);
-  border-end-end-radius: var(--border-radius-default);
-  background: var(--color-background-alternative-medium);
-
-  padding-inline-start: var(--spacing-xxsmall);
-  padding-inline-end: var(--spacing-xsmall);
 }

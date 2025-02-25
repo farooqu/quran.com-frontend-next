@@ -2,11 +2,13 @@ import React from 'react';
 
 import useTranslation from 'next-translate/useTranslation';
 
-import EndOfScrollingButton from './EndOfScrollingButton';
-
-import useScrollToTop from 'src/hooks/useScrollToTop';
-import { isFirstJuz, isLastJuz } from 'src/utils/juz';
-import { getJuzNavigationUrl } from 'src/utils/navigation';
+import Button, { ButtonType } from '@/dls/Button/Button';
+import useScrollToTop from '@/hooks/useScrollToTop';
+import ChevronLeftIcon from '@/icons/chevron-left.svg';
+import ChevronRightIcon from '@/icons/chevron-right.svg';
+import { logButtonClick } from '@/utils/eventLogger';
+import { isFirstJuz, isLastJuz } from '@/utils/juz';
+import { getJuzNavigationUrl } from '@/utils/navigation';
 import Verse from 'types/Verse';
 
 interface Props {
@@ -20,11 +22,38 @@ const JuzControls: React.FC<Props> = ({ lastVerse }) => {
   return (
     <>
       {!isFirstJuz(juzNumber) && (
-        <EndOfScrollingButton text={t('prev-juz')} href={getJuzNavigationUrl(juzNumber - 1)} />
+        <Button
+          type={ButtonType.Secondary}
+          prefix={<ChevronLeftIcon />}
+          href={getJuzNavigationUrl(juzNumber - 1)}
+          onClick={() => {
+            logButtonClick('juz_control_prev_juz');
+          }}
+        >
+          {t('prev-juz')}
+        </Button>
       )}
-      <EndOfScrollingButton text={t('juz-beginning')} onClick={scrollToTop} />
+      <Button
+        type={ButtonType.Secondary}
+        onClick={() => {
+          logButtonClick('juz_control_scroll_to_beginning');
+          scrollToTop();
+        }}
+      >
+        {t('juz-beginning')}
+      </Button>
+
       {!isLastJuz(juzNumber) && (
-        <EndOfScrollingButton text={t('next-juz')} href={getJuzNavigationUrl(juzNumber + 1)} />
+        <Button
+          type={ButtonType.Secondary}
+          suffix={<ChevronRightIcon />}
+          href={getJuzNavigationUrl(juzNumber + 1)}
+          onClick={() => {
+            logButtonClick('juz_control_next_juz');
+          }}
+        >
+          {t('next-juz')}
+        </Button>
       )}
     </>
   );

@@ -2,25 +2,34 @@ import classNames from 'classnames';
 
 import styles from './Tabs.module.scss';
 
-type Tab = {
+export type Tab = {
   title: string;
   value: string;
+  id?: string;
 };
+
 type TabsProps = {
   tabs: Tab[];
   selected: string;
   onSelect?: (value: string) => void;
+  className?: string;
 };
 
-const Tabs = ({ tabs, onSelect, selected }: TabsProps) => {
+// TODO: move this to Radix UI Tabs component
+const Tabs = ({ tabs, onSelect, selected, className }: TabsProps) => {
   return (
-    <div className={styles.container}>
-      {tabs.map((tab, index) => (
+    <div className={styles.container} role="tablist">
+      {tabs.map((tab) => (
         <div
-          className={classNames(styles.tabItem, selected === tab.value && styles.tabItemSelected)}
+          className={classNames(
+            className,
+            styles.tabItem,
+            selected === tab.value && styles.tabItemSelected,
+          )}
           key={tab.value}
           role="tab"
-          tabIndex={index}
+          tabIndex={0}
+          id={tab.id}
           {...(onSelect && {
             onKeyDown: () => onSelect(tab.value),
             onClick: () => onSelect(tab.value),

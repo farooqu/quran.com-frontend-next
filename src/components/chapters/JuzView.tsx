@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 
 import useTranslation from 'next-translate/useTranslation';
 
@@ -7,16 +7,18 @@ import SurahPreviewRow from '../dls/SurahPreview/SurahPreviewRow';
 
 import styles from './JuzView.module.scss';
 
-import { getAllJuzMappings, getChapterData } from 'src/utils/chapter';
-import { shouldUseMinimalLayout } from 'src/utils/locale';
+import { getAllJuzMappings, getChapterData } from '@/utils/chapter';
+import { shouldUseMinimalLayout, toLocalizedNumber } from '@/utils/locale';
+import DataContext from 'src/contexts/DataContext';
 
 type JuzViewProps = {
   isDescending: boolean;
 };
 
 const JuzView = ({ isDescending }: JuzViewProps) => {
-  const { t, lang } = useTranslation('common');
+  const { t, lang } = useTranslation();
   const [juzMappings, setJuzMappings] = useState([]);
+  const chaptersData = useContext(DataContext);
 
   useEffect(() => {
     getAllJuzMappings()
@@ -40,20 +42,28 @@ const JuzView = ({ isDescending }: JuzViewProps) => {
         const [juzId, chapterAndVerseMappings] = juzEntry;
         const chapterIds = Object.keys(chapterAndVerseMappings);
         return (
-          <div className={styles.juzContainer}>
-            <Link href={`/juz/${juzId}`} variant={LinkVariant.Primary}>
+          <div key={juzId} className={styles.juzContainer}>
+            <Link href={`/juz/${juzId}`} variant={LinkVariant.Primary} shouldPrefetch={false}>
               <div className={styles.juzTitle}>
-                {t('juz')} {juzId}
+                <span>
+                  {t('common:juz')} {toLocalizedNumber(juzId, lang)}
+                </span>
+                <span className={styles.readJuz}>{t('home:read-juz')}</span>
               </div>
             </Link>
             {chapterIds.map((chapterId) => {
-              const chapter = getChapterData(chapterId, lang);
+              const chapter = getChapterData(chaptersData, chapterId);
               return (
                 <div className={styles.chapterContainer} key={chapterId}>
-                  <Link href={`/${chapterId}/${chapterAndVerseMappings[chapterId]}`}>
+                  <Link
+                    href={`/${chapterId}/${chapterAndVerseMappings[chapterId]}`}
+                    shouldPrefetch={false}
+                  >
                     <SurahPreviewRow
                       chapterId={Number(chapterId)}
-                      description={`${chapter.versesCount} ${t('ayahs')}`}
+                      description={`${toLocalizedNumber(chapter.versesCount, lang)} ${t(
+                        'common:ayahs',
+                      )}`}
                       surahName={chapter.transliteratedName}
                       surahNumber={Number(chapterId)}
                       translatedSurahName={chapter.translatedName as string}

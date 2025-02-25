@@ -8,12 +8,18 @@
 
 .iconContainerSmall {
   span {
-    font-size: var(--font-size-small);
+    font-size: var(--font-size-xsmall);
   }
 }
 
 .iconContainerLarge {
   span {
     font-size: var(--font-size-jumbo);
+  }
+}
+
+.iconContainerMega {
+  span {
+    font-size: calc(1.5 * var(--font-size-jumbo));
   }
 }

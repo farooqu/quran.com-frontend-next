@@ -10,7 +10,6 @@ type SurahProps = {
   surahNumber: number;
   surahName: string;
   translatedSurahName: string;
-  verseCount: number;
   chapterId: number;
   display?: SurahPreviewDisplay;
   description?: string;
@@ -24,7 +23,7 @@ const SurahPreview = ({
   description,
   display = SurahPreviewDisplay.Block,
 }: SurahProps) => {
-  if (display === SurahPreviewDisplay.Block)
+  if (display === SurahPreviewDisplay.Block) {
     return (
       <SurahPreviewBlock
         chapterId={chapterId}
@@ -34,8 +33,9 @@ const SurahPreview = ({
         description={description}
       />
     );
+  }
 
-  if (display === SurahPreviewDisplay.Row)
+  if (display === SurahPreviewDisplay.Row) {
     return (
       <SurahPreviewRow
         chapterId={chapterId}
@@ -45,6 +45,7 @@ const SurahPreview = ({
         description={description}
       />
     );
+  }
 
   throw new Error('display must be either block or row');
 };

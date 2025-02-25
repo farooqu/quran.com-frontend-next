@@ -1,12 +1,12 @@
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
-import ChevronRightIcon from '../../../../public/icons/chevron-right.svg';
-
 import styles from './SelectionCard.module.scss';
 
+import ChevronRightIcon from '@/icons/chevron-right.svg';
+
 type SelectionCard = {
-  label: string;
-  value: string;
+  label?: string;
+  value?: string;
   onClick?: () => void;
 };
 

@@ -2,6 +2,8 @@
 @use "src/styles/constants";
 
 .container {
+  display: flex;
+  flex-direction: column;
   background: var(--color-background-elevated);
   position: fixed;
   height: 100vh;
@@ -10,9 +12,9 @@
   z-index: var(--z-index-header);
   transition: var(--transition-regular);
   transition-timing-function: ease-in;
-  overflow-y: auto;
+  overflow-y: auto !important;
   overflow-x: hidden;
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: contain !important;
   @include breakpoints.tablet {
     width: constants.$side-menu-desktop-width;
   }
@@ -27,6 +29,9 @@
     @include breakpoints.tablet {
       inset-inline-end: calc(-1 * constants.$side-menu-desktop-width);
     }
+  }
+  &.noTransition {
+    transition: none;
   }
 }
 
@@ -44,15 +49,16 @@
 .searchContainer {
   display: flex;
   flex-direction: column;
-  min-height: calc(100% - calc(constants.$navbar-height + calc(4 * var(--spacing-mega))));
+  min-height: calc(100% - calc(var(--navbar-container-height) + calc(4 * var(--spacing-mega))));
   @include breakpoints.tablet {
-    min-height: calc(100% - calc(constants.$navbar-height + var(--spacing-small)));
+    min-height: calc(100% - calc(var(--navbar-container-height) + var(--spacing-small)));
   }
   justify-content: space-between;
 }
 
 .bodyContainer {
-  margin-block-start: constants.$navbar-height;
+  flex: 1;
+  margin-block-start: var(--navbar-container-height);
   padding-block-start: var(--spacing-small);
   padding-inline-start: var(--spacing-small);
   padding-inline-end: var(--spacing-small);
@@ -73,8 +79,8 @@
   font-size: var(--font-size-large);
   width: 100%;
   position: fixed;
-  height: constants.$navbar-height;
-  border-bottom: 1px var(--color-borders-hairline) solid;
+  height: var(--navbar-container-height);
+  border-block-end: 1px var(--color-borders-hairline) solid;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -103,9 +109,13 @@
 }
 
 .hiddenButtonHeader {
-  border-bottom: 0;
+  border-block-end: 0;
 }
 
 .hiddenButtonHeaderContentContainer {
   align-items: flex-end;
+}
+
+.navbarInvisible {
+  transform: translate3d(0, 0 + var(--navbar-container-height), 0);
 }

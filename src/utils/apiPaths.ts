@@ -1,20 +1,24 @@
-import { ITEMS_PER_PAGE, makeUrl } from './api';
-import stringify from './qs-stringify';
+import { decamelizeKeys } from 'humps';
 
+// eslint-disable-next-line import/no-cycle
+import { getDefaultWordFields, getMushafId, ITEMS_PER_PAGE, makeUrl } from './api';
+import stringify from './qs-stringify';
+import { getProxiedServiceUrl } from './url';
+
+import { DEFAULT_RECITER } from '@/redux/defaultSettings/defaultSettings';
 import {
-  getAudioPlayerStateInitialState,
   getReadingPreferencesInitialState,
   getTranslationsInitialState,
-} from 'src/redux/defaultSettings/util';
-import { CalculationMethod, Madhab } from 'src/redux/slices/prayerTimes';
-import { AdvancedCopyRequest, SearchRequest } from 'types/ApiRequests';
-import { QuranFont } from 'types/QuranReader';
+} from '@/redux/defaultSettings/util';
+import { MushafLines, QuranFont } from '@/types/QuranReader';
+import { SearchRequestParams, SearchMode } from '@/types/Search/SearchRequestParams';
+import { AdvancedCopyRequest, PagesLookUpRequest } from 'types/ApiRequests';
 
 export const DEFAULT_VERSES_PARAMS = {
   words: true,
   translationFields: 'resource_name,language_id', // needed to show the name of the translation
-  limit: ITEMS_PER_PAGE,
-  fields: `${QuranFont.Uthmani},chapter_id,hizb_number`, // we need text_uthmani field when copying the verse. Also the chapter_id for when we want to share the verse or navigate to Tafsir, hizb_number is for when we show the context menu.
+  perPage: ITEMS_PER_PAGE,
+  fields: `${QuranFont.Uthmani},chapter_id,hizb_number,text_imlaei_simple`, // we need text_uthmani field when copying the verse. text_imlaei_simple is for SEO description meta tag. Also the chapter_id for when we want to share the verse or navigate to Tafsir, hizb_number is for when we show the context menu.
 };
 
 /**
@@ -22,27 +26,41 @@ export const DEFAULT_VERSES_PARAMS = {
  *
  * @param {string} currentLocale
  * @param {Record<string, unknown>} params
+ * @param {boolean} includeTranslationFields
  * @returns {Record<string, unknown>}
  */
 const getVersesParams = (
   currentLocale: string,
   params?: Record<string, unknown>,
-): Record<string, unknown> => ({
-  ...{
+  includeTranslationFields = true,
+): Record<string, unknown> => {
+  const defaultParams = {
     ...DEFAULT_VERSES_PARAMS,
     translations: getTranslationsInitialState(currentLocale).selectedTranslations.join(', '),
-    reciter: getAudioPlayerStateInitialState(currentLocale).reciter.id,
+    reciter: DEFAULT_RECITER.id,
     wordTranslationLanguage:
       getReadingPreferencesInitialState(currentLocale).selectedWordByWordLocale,
-  },
-  ...params,
-});
+  };
+
+  if (!includeTranslationFields) {
+    delete defaultParams.translationFields;
+    delete defaultParams.translations;
+  }
+
+  return {
+    ...defaultParams,
+    ...params,
+  };
+};
 
 export const makeVersesUrl = (
   id: string | number,
   currentLocale: string,
   params?: Record<string, unknown>,
 ) => makeUrl(`/verses/by_chapter/${id}`, getVersesParams(currentLocale, params));
+
+export const makeByRangeVersesUrl = (currentLocale: string, params?: Record<string, unknown>) =>
+  makeUrl(`/verses/by_range`, getVersesParams(currentLocale, params));
 
 export const makeVersesFilterUrl = (params?: Record<string, unknown>) =>
   makeUrl(`/verses/filter`, { ...params });
@@ -57,6 +75,15 @@ export const makeTranslationsUrl = (language: string): string =>
   makeUrl('/resources/translations', { language });
 
 /**
+ * Compose the url for the wbw translations API.
+ *
+ * @param {string} language
+ * @returns {string}
+ */
+export const makeWordByWordTranslationsUrl = (language: string): string =>
+  makeUrl('/resources/word_by_word_translations', { language });
+
+/**
  * Compose the url for the languages API.
  *
  * @param {string} language
@@ -68,12 +95,32 @@ export const makeLanguagesUrl = (language: string): string =>
 /**
  * Compose the url for reciters API.
  *
+ * @param {string} locale the user's language code.
  * @returns {string}
  */
-export const makeRecitersUrl = (): string => makeUrl('/audio/reciters');
+export const makeAvailableRecitersUrl = (locale: string, fields?: string[]): string =>
+  makeUrl('/audio/reciters', { locale, fields });
 
-export const makeChapterAudioDataUrl = (reciterId: number, chapter: number, segments: boolean) =>
-  makeUrl(`/audio/reciters/${reciterId}`, { chapter, segments });
+export const makeReciterUrl = (reciterId: string, locale: string): string =>
+  makeUrl(`/audio/reciters/${reciterId}`, {
+    locale,
+    fields: ['profile_picture', 'cover_image', 'bio'],
+  });
+
+/**
+ * Compose the url of the audio file of a surah.
+ *
+ * @param {number} reciterId id of reciter
+ * @param {number} chapter the surah number.
+ * @param {boolean} segments include segments info
+ *
+ * @returns {string}
+ */
+export const makeChapterAudioDataUrl = (
+  reciterId: number,
+  chapter: number,
+  segments: boolean,
+): string => makeUrl(`/audio/reciters/${reciterId}/audio_files`, { chapter, segments });
 
 export const makeAudioTimestampsUrl = (reciterId: number, verseKey: string) =>
   makeUrl(`/audio/reciters/${reciterId}/timestamp?verse_key=${verseKey}`);
@@ -86,7 +133,10 @@ export const makeAudioTimestampsUrl = (reciterId: number, verseKey: string) =>
  * @returns {string}
  */
 export const makeTranslationsInfoUrl = (locale: string, translations: number[]): string =>
-  makeUrl('/resources/translations/filter', { locale, translations: translations.join(', ') });
+  makeUrl('/resources/translations/filter', {
+    locale,
+    translations: translations.join(', '),
+  });
 
 /**
  * Compose the url for the advanced copy API.
@@ -97,13 +147,9 @@ export const makeTranslationsInfoUrl = (locale: string, translations: number[]):
 export const makeAdvancedCopyUrl = (params: AdvancedCopyRequest): string =>
   makeUrl('/verses/advanced_copy', params as Record<string, unknown>);
 
-/**
- * Compose the url for search API.
- *
- * @param {SearchRequest} params the request params.
- * @returns {string}
- */
-export const makeSearchResultsUrl = (params: SearchRequest): string => makeUrl('/search', params);
+export const makeNewSearchResultsUrl = <T extends SearchMode>(params: SearchRequestParams<T>) => {
+  return getProxiedServiceUrl('search/v1/search', `?${stringify(decamelizeKeys(params))}`);
+};
 
 /**
  * Compose the url for the navigation search API that is used to show results inside the command bar.
@@ -122,6 +168,29 @@ export const makeNavigationSearchUrl = (query: string): string => makeUrl('/navi
 export const makeTafsirsUrl = (language: string): string =>
   makeUrl('/resources/tafsirs', { language });
 
+export const makeTafsirContentUrl = (
+  tafsirId: number | string,
+  verseKey: string,
+  options: { lang: string; quranFont: QuranFont; mushafLines: MushafLines },
+) => {
+  const params = {
+    locale: options.lang,
+    words: true,
+    ...getDefaultWordFields(options.quranFont),
+    ...getMushafId(options.quranFont, options.mushafLines),
+  };
+  return makeUrl(`/tafsirs/${tafsirId}/by_ayah/${verseKey}`, params);
+};
+
+/**
+ * Compose the url for the pages look up API.
+ *
+ * @param {PagesLookUpRequest} params
+ * @returns {string}
+ */
+export const makePagesLookupUrl = (params: PagesLookUpRequest): string =>
+  makeUrl('/pages/lookup', params);
+
 /**
  * Compose the url for the chapter's info API.
  *
@@ -131,6 +200,16 @@ export const makeTafsirsUrl = (language: string): string =>
  */
 export const makeChapterInfoUrl = (chapterId: string, language: string): string =>
   makeUrl(`/chapters/${chapterId}/info`, { language });
+
+/**
+ * Compose the url for the chapter's API.
+ *
+ * @param {string} chapterIdOrSlug the chapter Id or the slug.
+ * @param {string} language the user's language code.
+ * @returns {string}
+ */
+export const makeChapterUrl = (chapterIdOrSlug: string, language: string): string =>
+  makeUrl(`/chapters/${chapterIdOrSlug}`, { language });
 
 /**
  * Compose the url for Juz's verses API.
@@ -147,18 +226,62 @@ export const makeJuzVersesUrl = (
 ): string => makeUrl(`/verses/by_juz/${id}`, getVersesParams(currentLocale, params));
 
 /**
+ * Compose the url for Rub el Hizb's verses API.
+ *
+ * @param {string} id  the Id of the Rub el Hizb.
+ * @param {string} currentLocale  the locale.
+ * @param {Record<string, unknown>} params  in-case we need to over-ride the default params.
+ * @returns {string}
+ */
+export const makeRubVersesUrl = (
+  id: string | number,
+  currentLocale: string,
+  params?: Record<string, unknown>,
+): string => makeUrl(`/verses/by_rub_el_hizb/${id}`, getVersesParams(currentLocale, params));
+
+/**
+ * Compose the url for Hizb's verses API.
+ *
+ * @param {string} id  the Id of the hizb.
+ * @param {string} currentLocale  the locale.
+ * @param {Record<string, unknown>} params  in-case we need to over-ride the default params.
+ * @returns {string}
+ */
+export const makeHizbVersesUrl = (
+  id: string | number,
+  currentLocale: string,
+  params?: Record<string, unknown>,
+): string => makeUrl(`/verses/by_hizb/${id}`, getVersesParams(currentLocale, params));
+
+/**
+ * Compose the url for by verse key API.
+ *
+ * @param {string} verseKey  the Id of the juz.
+ * @param {Record<string, unknown>} params  in-case we need to over-ride the default params.
+ * @returns {string}
+ */
+export const makeByVerseKeyUrl = (verseKey: string, params?: Record<string, unknown>): string =>
+  makeUrl(`/verses/by_key/${verseKey}`, params);
+
+/**
  * Compose the url for page's verses API.
  *
  * @param {string} id  the Id of the page.
  * @param {string} currentLocale  the locale.
  * @param {Record<string, unknown>} params  in-case we need to over-ride the default params.
+ * @param {boolean} includeTranslationFields
  * @returns {string}
  */
 export const makePageVersesUrl = (
   id: string | number,
   currentLocale: string,
   params?: Record<string, unknown>,
-): string => makeUrl(`/verses/by_page/${id}`, getVersesParams(currentLocale, params));
+  includeTranslationFields = true,
+): string =>
+  makeUrl(
+    `/verses/by_page/${id}`,
+    getVersesParams(currentLocale, params, includeTranslationFields),
+  );
 
 /**
  * Compose the url for footnote's API.
@@ -168,31 +291,13 @@ export const makePageVersesUrl = (
  */
 export const makeFootnoteUrl = (footnoteId: string): string => makeUrl(`/foot_notes/${footnoteId}`);
 
-// TODO: replace this url
-const PRAYER_TIMES_URL =
-  'https://quran-prayer-times-api-abdellatif-io-qurancom.vercel.app/api/prayer-times';
+export const makeDonateUrl = (showDonationPopup = false) =>
+  `https://donate.quran.foundation${showDonationPopup ? '?showDonationPopup' : ''}`;
 
-/**
- * Compose the url for prayer times API
- *
- * @param {Object} query
- * @param {number} query.latitude
- * @param {number} query.longtitude
- * @param {CalculationMethod} query.calculationMethod
- * @param {Madhab} query.madhab
- * @returns {string}
- */
-export const makePrayerTimesUrl = (query: {
-  calculationMethod: CalculationMethod;
-  madhab: Madhab;
-  latitude?: number;
-  longtitude?: number;
-}) => {
-  const today = new Date();
-  const date = today.getDate();
-  const month = today.getMonth();
-  const year = today.getFullYear();
-
-  const queryParameters = `?${stringify({ ...query, date, month, year })}`;
-  return `${PRAYER_TIMES_URL}${queryParameters}`;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const makeDonatePageUrl = (isOnce = true, shouldUseProviderUrl = false) => {
+  if (shouldUseProviderUrl) {
+    return `https://give.quran.foundation/give/${isOnce ? 482507 : 474400}/#!/donation/checkout`;
+  }
+  return makeDonateUrl();
 };

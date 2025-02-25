@@ -7,21 +7,22 @@ import NoResults from './NoResults';
 import PreInput from './PreInput';
 import styles from './SearchBodyContainer.module.scss';
 
-import Spinner, { SpinnerSize } from 'src/components/dls/Spinner/Spinner';
-import SearchResults from 'src/components/Search/SearchResults';
-import { getSearchQueryNavigationUrl } from 'src/utils/navigation';
+import SearchResults from '@/components/Search/SearchResults';
+import Spinner, { SpinnerSize } from '@/dls/Spinner/Spinner';
+import SearchQuerySource from '@/types/SearchQuerySource';
 import { SearchResponse } from 'types/ApiResponses';
 
 interface Props {
   searchQuery: string;
   isSearching: boolean;
-  isSearchDrawer?: boolean;
   hasError: boolean;
   searchResult: SearchResponse;
   onSearchKeywordClicked: (keyword: string) => void;
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
+  shouldSuggestFullSearchWhenNoResults?: boolean;
+  source: SearchQuerySource;
 }
 
 const SearchBodyContainer: React.FC<Props> = ({
@@ -30,13 +31,13 @@ const SearchBodyContainer: React.FC<Props> = ({
   hasError,
   searchResult,
   onSearchKeywordClicked,
-  isSearchDrawer = true,
   currentPage,
   pageSize,
   onPageChange,
+  shouldSuggestFullSearchWhenNoResults = false,
+  source,
 }) => {
   const { t } = useTranslation('common');
-  const searchUrl = getSearchQueryNavigationUrl(searchQuery);
   const isEmptyResponse =
     searchResult &&
     searchResult.pagination.totalRecords === 0 &&
@@ -50,7 +51,7 @@ const SearchBodyContainer: React.FC<Props> = ({
       })}
     >
       {!searchQuery ? (
-        <PreInput onSearchKeywordClicked={onSearchKeywordClicked} />
+        <PreInput onSearchKeywordClicked={onSearchKeywordClicked} source={source} />
       ) : (
         <>
           {isSearching ? (
@@ -63,14 +64,13 @@ const SearchBodyContainer: React.FC<Props> = ({
                   {isEmptyResponse ? (
                     <NoResults
                       searchQuery={searchQuery}
-                      searchUrl={searchUrl}
-                      isSearchDrawer={isSearchDrawer}
+                      shouldSuggestFullSearchWhenNoResults={shouldSuggestFullSearchWhenNoResults}
                     />
                   ) : (
                     <SearchResults
                       searchResult={searchResult}
                       searchQuery={searchQuery}
-                      isSearchDrawer={isSearchDrawer}
+                      source={source}
                       currentPage={currentPage}
                       onPageChange={onPageChange}
                       pageSize={pageSize}

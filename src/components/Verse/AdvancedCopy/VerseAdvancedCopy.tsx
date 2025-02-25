@@ -1,8 +1,8 @@
 /* eslint-disable max-lines */
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 
+import classNames from 'classnames';
 import useTranslation from 'next-translate/useTranslation';
-import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
 import useSWRImmutable from 'swr/immutable';
 
@@ -12,15 +12,26 @@ import validateRangeSelection from './utils/validateRangeSelection';
 import styles from './VerseAdvancedCopy.module.scss';
 import VersesRangeSelector from './VersesRangeSelector';
 
+import Checkbox from '@/dls/Forms/Checkbox/Checkbox';
+import RadioGroup, { RadioGroupOrientation } from '@/dls/Forms/RadioGroup/RadioGroup';
+import Select from '@/dls/Forms/Select';
+import HelperTooltip from '@/dls/HelperTooltip/HelperTooltip';
+import Link, { LinkVariant } from '@/dls/Link/Link';
+import { selectSelectedTranslations } from '@/redux/slices/QuranReader/translations';
+import { QuranFont } from '@/types/QuranReader';
+import { makeTranslationsUrl } from '@/utils/apiPaths';
+import { areArraysEqual } from '@/utils/array';
+import { throwIfError } from '@/utils/error';
+import {
+  logButtonClick,
+  logEvent,
+  logItemSelectionChange,
+  logValueChange,
+} from '@/utils/eventLogger';
+import { toLocalizedVerseKey } from '@/utils/locale';
+import { generateChapterVersesKeys } from '@/utils/verse';
 import { getAvailableTranslations } from 'src/api';
-import Checkbox from 'src/components/dls/Forms/Checkbox/Checkbox';
-import RadioGroup, { RadioGroupOrientation } from 'src/components/dls/Forms/RadioGroup/RadioGroup';
-import Link, { LinkVariant } from 'src/components/dls/Link/Link';
-import { selectSelectedTranslations } from 'src/redux/slices/QuranReader/translations';
-import { makeTranslationsUrl } from 'src/utils/apiPaths';
-import { areArraysEqual } from 'src/utils/array';
-import { throwIfError } from 'src/utils/error';
-import { generateChapterVersesKeys } from 'src/utils/verse';
+import DataContext from 'src/contexts/DataContext';
 import Verse from 'types/Verse';
 
 interface Props {
@@ -34,11 +45,17 @@ const MULTIPLE_VERSES = 'multiple';
 const TRUE_STRING = String(true);
 const FALSE_STRING = String(false);
 
+const TO_COPY_FONTS = [
+  QuranFont.Uthmani,
+  QuranFont.MadaniV1,
+  QuranFont.MadaniV2,
+  QuranFont.IndoPak,
+];
+
 const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
   const { lang, t } = useTranslation('quran-reader');
-  const router = useRouter();
-  const { chapterId } = router.query;
-  const selectedTranslations = useSelector(selectSelectedTranslations, areArraysEqual);
+  const chaptersData = useContext(DataContext);
+  const selectedTranslations = useSelector(selectSelectedTranslations, areArraysEqual) as number[];
   // whether we should show the range of verses or not. This will be based on user selection.
   const [showRangeOfVerses, setShowRangeOfVerses] = useState(false);
   // the items that will be passed to the range start and end dropdown selectors. The value will be populated only once the user chooses the verses range option.
@@ -47,10 +64,12 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
   const [rangeStartVerse, setRangeStartVerse] = useState(null);
   // the key of the range end verse.
   const [rangeEndVerse, setRangeEndVerse] = useState(null);
-  // whether the Arabic Quran text should be copied or not.
-  const [shouldCopyText, setShouldCopyText] = useState(true);
+  // Which font to copy.
+  const [shouldCopyFont, setShouldCopyFont] = useState<QuranFont>(QuranFont.Uthmani);
   // whether the selected verses' footnotes should be copied or not.
-  const [shouldCopyFootnotes, setShouldCopyFootnotes] = useState(false);
+  const [shouldCopyFootnotes, setShouldCopyFootnotes] = useState(true);
+  // whether we should include the translator name or not.
+  const [shouldIncludeTranslatorName, setShouldIncludeTranslatorName] = useState(true);
   // a map of the IDs of the translations the users had selected and whether it should be copied or not. Will not be copied by default.
   const [translations, setTranslations] = useState<
     Record<number, { shouldBeCopied: boolean; name: string }>
@@ -98,7 +117,7 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
       .filter((translation) => selectedTranslations.includes(translation.id))
       .forEach((translation) => {
         responseTranslations[translation.id] = {
-          shouldBeCopied: false, // the default is to not copy the translation
+          shouldBeCopied: true, // the default is to copy the translation
           name: translation.translatedName.name,
         };
       });
@@ -128,17 +147,18 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
     setShowRangeOfVerses(true);
     // we only need to generate the verse keys + set the range start and end only when the user hadn't selected the range already to avoid re-calculating the keys and to avoid resetting his selected range boundaries when he switches back and forth between current verse/range of verses options.
     if (!rangeStartVerse || !rangeEndVerse) {
-      const keys = generateChapterVersesKeys(chapterId as string);
+      const keys = generateChapterVersesKeys(chaptersData, verse.chapterId as string);
       setRangeVersesItems(
         keys.map((chapterVersesKey) => ({
           id: chapterVersesKey,
           name: chapterVersesKey,
           value: chapterVersesKey,
-          label: chapterVersesKey,
+          label: toLocalizedVerseKey(chapterVersesKey, lang),
         })),
       );
       // set the first verse's key as the default range's start verse.
-      setRangeStartVerse(keys[0]);
+      const startFromVerseNumber = verse?.verseNumber || 1;
+      setRangeStartVerse(keys[startFromVerseNumber - 1]);
       // set the last verse's key as the default range's end verse.
       setRangeEndVerse(keys[keys.length - 1]);
     }
@@ -150,6 +170,11 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
    * @param {string} type
    */
   const onRangeTypeChange = (type: string) => {
+    logValueChange(
+      'advanced_copy_modal_range_type',
+      showRangeOfVerses ? MULTIPLE_VERSES : SINGLE_VERSE,
+      type,
+    );
     if (type === SINGLE_VERSE) {
       setShowRangeOfVerses(false);
     } else {
@@ -158,10 +183,11 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
   };
 
   const onCopyTextClicked = () => {
+    logButtonClick('advanced_copy_modal_copy');
     setIsLoadingData(true);
     // if a range is selected, we need to validate it first
     if (showRangeOfVerses) {
-      const validationError = validateRangeSelection(rangeStartVerse, rangeEndVerse);
+      const validationError = validateRangeSelection(rangeStartVerse, rangeEndVerse, t);
       // if the validation fails
       if (validationError) {
         setCustomMessage(validationError);
@@ -175,7 +201,8 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
       rangeEndVerse,
       rangeStartVerse,
       shouldCopyFootnotes,
-      shouldCopyText,
+      shouldIncludeTranslatorName,
+      shouldCopyFont,
       translations,
       verseKey: verse.verseKey,
     })
@@ -189,8 +216,18 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
       });
   };
 
-  const onShouldCopyTextChange = () => {
-    setShouldCopyText((prevShouldCopyText) => !prevShouldCopyText);
+  const onShouldCopyFontsChange = (font: string) => {
+    logItemSelectionChange('advanced_copy_modal_font', font);
+    setShouldCopyFont(font as QuranFont);
+  };
+
+  const onShouldIncludeTranslatorNameChange = (includeTranslatorName: string) => {
+    const shouldInclude = includeTranslatorName === TRUE_STRING;
+    logEvent(
+      // eslint-disable-next-line i18next/no-literal-string
+      `advanced_copy_modal_include_translator_${shouldInclude ? 'selected' : 'unselected'}`,
+    );
+    setShouldIncludeTranslatorName(shouldInclude);
   };
 
   /**
@@ -199,7 +236,12 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
    * @param {string} shouldCopyString
    */
   const onShouldCopyFootnoteChange = (shouldCopyString: string) => {
-    setShouldCopyFootnotes(shouldCopyString === TRUE_STRING);
+    const shouldCopy = shouldCopyString === TRUE_STRING;
+    logEvent(
+      // eslint-disable-next-line i18next/no-literal-string
+      `advanced_copy_modal_copy_footnote_${shouldCopy ? 'selected' : 'unselected'}`,
+    );
+    setShouldCopyFootnotes(shouldCopy);
   };
 
   /**
@@ -209,13 +251,17 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
    * @returns {void}
    */
   const onCopyTranslationChange = (translationId: string): void => {
-    setTranslations((prevTranslations) => ({
-      ...prevTranslations,
-      [translationId]: {
-        ...prevTranslations[translationId],
-        shouldBeCopied: !prevTranslations[translationId].shouldBeCopied,
-      },
-    }));
+    setTranslations((prevTranslations) => {
+      const shouldBeCopied = !prevTranslations[translationId].shouldBeCopied;
+      logItemSelectionChange('advanced_copy_modal_translation', translationId, shouldBeCopied);
+      return {
+        ...prevTranslations,
+        [translationId]: {
+          ...prevTranslations[translationId],
+          shouldBeCopied,
+        },
+      };
+    });
   };
 
   const ayahSelectionComponent = (
@@ -230,7 +276,7 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
           {
             value: SINGLE_VERSE,
             id: SINGLE_VERSE,
-            label: `${t('current-verse')} ${verse.verseKey}`,
+            label: `${t('current-verse')} ${toLocalizedVerseKey(verse.verseKey, lang)}`,
           },
           {
             value: MULTIPLE_VERSES,
@@ -243,18 +289,11 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
         <VersesRangeSelector
           isVisible={showRangeOfVerses}
           dropdownItems={rangeVersesItems}
-          rangeStartVerse={rangeStartVerse}
-          rangeEndVerse={rangeEndVerse}
+          rangeStartVerse={toLocalizedVerseKey(rangeStartVerse, lang)}
+          rangeEndVerse={toLocalizedVerseKey(rangeEndVerse, lang)}
           onChange={onRangeBoundariesChange}
         />
       )}
-      <p className={styles.label}>{t('copy-what')}</p>
-      <Checkbox
-        onChange={onShouldCopyTextChange}
-        checked={shouldCopyText}
-        id="quranText"
-        label={t('copy-arabic')}
-      />
       {selectedTranslations.length !== 0 && (
         <>
           <p className={styles.label}>{t('common:translations')}:</p>
@@ -271,8 +310,44 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
               <div key={translationId} className={styles.emptyCheckbox} />
             ),
           )}
+          <p className={styles.label}>{t('include-translator')}</p>
+          <RadioGroup
+            label="include_translator"
+            value={shouldIncludeTranslatorName ? TRUE_STRING : FALSE_STRING}
+            onChange={onShouldIncludeTranslatorNameChange}
+            items={[
+              {
+                value: TRUE_STRING,
+                id: TRUE_STRING,
+                label: t('common:yes'),
+              },
+              {
+                value: FALSE_STRING,
+                id: FALSE_STRING,
+                label: t('common:no'),
+              },
+            ]}
+          />
         </>
       )}
+      <div className={classNames(styles.label, styles.fontLabelContainer)}>
+        <p>{t('font')}</p>
+        <HelperTooltip>{t('font-tooltip')}</HelperTooltip>
+      </div>
+      <Select
+        id="arabic-font-to-copy"
+        name="arabic-font-to-copy"
+        placeholder={t('font-placeholder')}
+        options={[
+          { label: t('common:none'), value: '' },
+          ...TO_COPY_FONTS.map((font) => ({
+            label: t(`common:fonts.${font}`),
+            value: font,
+          })),
+        ]}
+        value={shouldCopyFont}
+        onChange={(val) => onShouldCopyFontsChange(val as string)}
+      />
       <p className={styles.label}>{t('copy-footnote-q')}</p>
       <RadioGroup
         label="copy_footnotes"
@@ -280,14 +355,14 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
         onChange={onShouldCopyFootnoteChange}
         items={[
           {
-            value: FALSE_STRING,
-            id: FALSE_STRING,
-            label: t('common:no'),
-          },
-          {
             value: TRUE_STRING,
             id: TRUE_STRING,
             label: t('common:yes'),
+          },
+          {
+            value: FALSE_STRING,
+            id: FALSE_STRING,
+            label: t('common:no'),
           },
         ]}
       />
@@ -297,7 +372,14 @@ const VerseAdvancedCopy: React.FC<Props> = ({ verse, children }) => {
       {objectUrl && (
         <p className={styles.customMessage}>
           {t('copy-success')}{' '}
-          <Link href={objectUrl} download="quran.copy.txt" variant={LinkVariant.Highlight}>
+          <Link
+            href={objectUrl}
+            download="quran.copy.txt"
+            variant={LinkVariant.Highlight}
+            onClick={() => {
+              logButtonClick('advanced_copy_modal_download_file');
+            }}
+          >
             {t('common:click-here')}
           </Link>{' '}
           {t('download-copy')}

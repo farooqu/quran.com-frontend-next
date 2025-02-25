@@ -11,20 +11,21 @@
   border-radius: var(--border-radius-default);
   cursor: pointer;
 
-  &:hover {
-    border: 1px solid var(--color-success-medium);
-    background-color: var(--color-success-faded);
-    @include utility.lighten-background-color;
+  @media (hover: hover) {
+    &:hover {
+      border: 1px solid var(--color-success-medium);
+      background-color: var(--color-background-alternative-faded);
 
-    .surahNumber {
-      background-color: var(--color-success-medium);
-      color: var(--color-text-inverse);
-    }
-    .translatedSurahName {
-      color: var(--color-success-medium);
-    }
-    .description {
-      color: var(--color-success-medium);
+      .surahNumber {
+        background-color: var(--color-success-medium);
+        color: var(--color-text-inverse);
+      }
+      .translatedSurahName {
+        color: var(--color-success-medium);
+      }
+      .description {
+        color: var(--color-success-medium);
+      }
     }
   }
 }
@@ -49,7 +50,7 @@
   flex-direction: column;
 }
 .translatedSurahName {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-xsmall);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-faded);
 }
@@ -70,7 +71,7 @@
 
 .description {
   text-align: end;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-xsmall);
   font-weight: var(--font-weight-bold);
 
   color: var(--color-text-faded);

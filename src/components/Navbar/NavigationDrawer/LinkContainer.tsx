@@ -1,29 +1,29 @@
 import React from 'react';
 
-import Link from 'next/link';
-
 import styles from './LinkContainer.module.scss';
+
+import Link from '@/dls/Link/Link';
 
 type LinkContainerProps = {
   href?: string;
   isExternalLink?: boolean;
   children: React.ReactNode;
+  onClick?: () => void;
 };
 
-const LinkContainer = ({ href, isExternalLink, children }: LinkContainerProps) => {
+const LinkContainer = ({ href, isExternalLink, children, onClick }: LinkContainerProps) => {
   if (!href) {
     return <>{children}</>;
   }
-  if (isExternalLink) {
-    return (
-      <a className={styles.anchor} href={href} target="_blank" rel="noreferrer">
-        {children}
-      </a>
-    );
-  }
   return (
-    <Link href={href} passHref>
-      <a className={styles.anchor}>{children}</a>
+    <Link
+      href={href}
+      shouldPassHref
+      shouldPrefetch={false}
+      onClick={onClick}
+      isNewTab={isExternalLink}
+    >
+      <div className={styles.anchor}>{children}</div>
     </Link>
   );
 };

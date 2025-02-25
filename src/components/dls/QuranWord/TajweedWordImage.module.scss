@@ -1,59 +1,105 @@
 @use "src/styles/breakpoints";
+@use "src/styles/theme";
 
 $dark-theme-filter: invert(76%) contrast(100%) saturate(500%) hue-rotate(274deg);
+$light-theme-filter: contrast(100%) hue-rotate(50deg);
 .imageContainer {
-  // Detect OS dark mode
-  @media (prefers-color-scheme: dark) {
+  @include theme.light {
+    img {
+      filter: $light-theme-filter;
+    }
+  }
+  @include theme.dark {
     img {
       filter: $dark-theme-filter;
     }
   }
-  [data-theme="light"] & {
+  @include theme.sepia {
     img {
-      filter: unset;
-    }
-  }
-  [data-theme="dark"] & {
-    img {
-      filter: $dark-theme-filter;
+      filter: $light-theme-filter;
     }
   }
 }
 
 .xs {
   img {
-    zoom: 0.4;
+    height: 40px;
     @include breakpoints.tablet {
-      zoom: 0.3;
+      height: 50px;
     }
   }
 }
 .sm {
   img {
-    zoom: 0.5;
+    height: 50px;
+    @include breakpoints.tablet {
+      height: 65px;
+    }
   }
 }
 .md {
   img {
-    zoom: 0.7;
+    height: 70px;
     @include breakpoints.tablet {
-      zoom: 0.7;
+      height: 75px;
     }
   }
 }
 .lg {
   img {
-    zoom: 1;
+    height: 80px;
     @include breakpoints.tablet {
-      zoom: 0.9;
+      height: 90px;
     }
   }
 }
 .xl {
   img {
-    zoom: 1.2;
+    height: 90px;
     @include breakpoints.tablet {
-      zoom: 1;
+      height: 92px;
+    }
+  }
+}
+
+.xl2 {
+  img {
+    height: 100px;
+  }
+}
+
+.xl3 {
+  img {
+    height: 110px;
+    @include breakpoints.tablet {
+      height: 102px;
+    }
+  }
+}
+
+.xl4 {
+  img {
+    height: 120px;
+    @include breakpoints.tablet {
+      height: 104px;
+    }
+  }
+}
+
+.xl5 {
+  img {
+    height: 130px;
+    @include breakpoints.tablet {
+      height: 106px;
+    }
+  }
+}
+
+.xl6 {
+  img {
+    height: 140px;
+    @include breakpoints.tablet {
+      height: 108px;
     }
   }
 }

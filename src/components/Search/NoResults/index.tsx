@@ -2,20 +2,39 @@ import React from 'react';
 
 import useTranslation from 'next-translate/useTranslation';
 
-import IconSearch from '../../../../public/icons/search.svg';
-
 import styles from './NoResults.module.scss';
 
-import AdvancedSearchLink from 'src/components/Navbar/SearchDrawer/AdvancedSearchLink';
+import Link, { LinkVariant } from '@/dls/Link/Link';
+import IconSearch from '@/icons/search.svg';
+import { logButtonClick } from '@/utils/eventLogger';
+import { getSearchQueryNavigationUrl } from '@/utils/navigation';
 
 interface Props {
-  searchUrl?: string;
   searchQuery: string;
-  isSearchDrawer: boolean;
+  shouldSuggestFullSearchWhenNoResults?: boolean;
 }
 
-const NoResults: React.FC<Props> = ({ searchQuery, searchUrl = '', isSearchDrawer }) => {
+const NoResults: React.FC<Props> = ({
+  searchQuery,
+  shouldSuggestFullSearchWhenNoResults = false,
+}) => {
   const { t } = useTranslation('common');
+  if (shouldSuggestFullSearchWhenNoResults) {
+    return (
+      <Link
+        href={getSearchQueryNavigationUrl(searchQuery)}
+        shouldPassHref
+        onClick={() => {
+          logButtonClick('no_results_advanced_search_link');
+        }}
+        variant={LinkVariant.Blend}
+      >
+        {t('search-for', {
+          searchQuery,
+        })}
+      </Link>
+    );
+  }
   return (
     <>
       <div className={styles.container}>
@@ -29,7 +48,6 @@ const NoResults: React.FC<Props> = ({ searchQuery, searchUrl = '', isSearchDrawe
           </p>
         </div>
       </div>
-      {isSearchDrawer && <AdvancedSearchLink searchUrl={searchUrl} />}
     </>
   );
 };

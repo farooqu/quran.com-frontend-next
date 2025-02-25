@@ -16,44 +16,60 @@ import DefaultSettingsMiddleware from './middleware/defaultSettingsMiddleware';
 import migrations from './migrations';
 import audioPlayerPersistConfig from './slices/AudioPlayer/persistConfig';
 import audioPlayerState from './slices/AudioPlayer/state';
+import banner from './slices/banner';
 import commandBarPersistConfig from './slices/CommandBar/persistConfig';
 import commandBar from './slices/CommandBar/state';
 import defaultSettings from './slices/defaultSettings';
+import fundraisingBanner from './slices/fundraisingBanner';
+import mediaMaker from './slices/mediaMaker';
 import navbar from './slices/navbar';
-import prayerTimes from './slices/prayerTimes';
+import notifications from './slices/notifications';
+import onboarding from './slices/onboarding';
+import persistGateHydration from './slices/persistGateHydration';
 import bookmarks from './slices/QuranReader/bookmarks';
 import contextMenu from './slices/QuranReader/contextMenu';
-import highlightedLocation from './slices/QuranReader/highlightedLocation';
+import fontFaces from './slices/QuranReader/font-faces';
 import notes from './slices/QuranReader/notes';
 import readingPreferences from './slices/QuranReader/readingPreferences';
 import readingTracker from './slices/QuranReader/readingTracker';
+import readingViewVerse from './slices/QuranReader/readingViewVerse';
+import sidebarNavigation from './slices/QuranReader/sidebarNavigation';
 import quranReaderStyles from './slices/QuranReader/styles';
 import tafsirs from './slices/QuranReader/tafsirs';
 import translations from './slices/QuranReader/translations';
+import revelationOrder from './slices/revelationOrder';
 import search from './slices/Search/search';
+import session from './slices/session';
 import theme from './slices/theme';
-import voiceSearch from './slices/voiceSearch';
 import welcomeMessage from './slices/welcomeMessage';
+import SliceName from './types/SliceName';
 
 const persistConfig = {
   key: 'root',
-  version: 16,
+  version: 34,
   storage,
   migrate: createMigrate(migrations, {
     debug: process.env.NEXT_PUBLIC_VERCEL_ENV === 'development',
   }),
   whitelist: [
-    'quranReaderStyles',
-    'readingPreferences',
-    'translations',
-    'theme',
-    'tafsirs',
-    'bookmarks',
-    'search',
-    'readingTracker',
-    'welcomeMessage',
-    'prayerTimes',
-    'defaultSettings',
+    SliceName.QURAN_READER_STYLES,
+    SliceName.READING_PREFERENCES,
+    SliceName.TRANSLATIONS,
+    SliceName.THEME,
+    SliceName.TAFSIRS,
+    SliceName.SEARCH,
+    SliceName.READING_TRACKER,
+    SliceName.WELCOME_MESSAGE,
+    SliceName.DEFAULT_SETTINGS,
+    SliceName.SIDEBAR_NAVIGATION,
+    SliceName.BANNER,
+    SliceName.FUNDRAISING_BANNER,
+    SliceName.SESSION,
+    SliceName.BOOKMARKS,
+    SliceName.USER_DATA_SYNC,
+    SliceName.REVELATION_ORDER,
+    SliceName.ONBOARDING,
+    SliceName.MEDIA_MAKER,
   ], // Reducers defined here will be have their values saved in local storage and persist across sessions. See: https://github.com/rt2zz/redux-persist#blacklist--whitelist
 };
 
@@ -69,13 +85,21 @@ export const rootReducer = combineReducers({
   tafsirs,
   bookmarks,
   search,
-  highlightedLocation,
   readingTracker,
   commandBar: persistReducer(commandBarPersistConfig, commandBar),
   welcomeMessage,
-  voiceSearch,
-  prayerTimes,
   defaultSettings,
+  fontFaces,
+  sidebarNavigation,
+  readingViewVerse,
+  banner,
+  fundraisingBanner,
+  session,
+  persistGateHydration,
+  revelationOrder,
+  notifications,
+  onboarding,
+  mediaMaker,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
@@ -85,6 +109,7 @@ const getStore = (locale: string) =>
     reducer: persistedReducer,
     // @ts-ignore
     middleware: (getDefaultMiddleware) =>
+      // @ts-ignore
       getDefaultMiddleware({
         serializableCheck: {
           // Used for Redux-persist, see:https://redux-toolkit.js.org/usage/usage-guide#use-with-redux-persist

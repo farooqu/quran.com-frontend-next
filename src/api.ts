@@ -1,26 +1,39 @@
+/* eslint-disable max-lines */
 import { camelizeKeys } from 'humps';
+import { NextApiRequest } from 'next';
 
+import { MushafLines, QuranFont } from '@/types/QuranReader';
+import { SearchRequestParams, SearchMode } from '@/types/Search/SearchRequestParams';
+import NewSearchResponse from '@/types/Search/SearchResponse';
 import {
   makeAdvancedCopyUrl,
   makeTafsirsUrl,
   makeLanguagesUrl,
   makeAudioTimestampsUrl,
   makeChapterAudioDataUrl,
-  makeRecitersUrl,
-  makeSearchResultsUrl,
+  makeAvailableRecitersUrl,
   makeTranslationsInfoUrl,
   makeTranslationsUrl,
   makeVersesUrl,
   makeJuzVersesUrl,
+  makeRubVersesUrl,
+  makeHizbVersesUrl,
   makeChapterInfoUrl,
   makePageVersesUrl,
   makeFootnoteUrl,
-} from './utils/apiPaths';
-
-import { SearchRequest, AdvancedCopyRequest } from 'types/ApiRequests';
+  makeChapterUrl,
+  makeReciterUrl,
+  makeTafsirContentUrl,
+  makePagesLookupUrl,
+  makeNewSearchResultsUrl,
+  makeByRangeVersesUrl,
+  makeWordByWordTranslationsUrl,
+} from '@/utils/apiPaths';
+import generateSignature from '@/utils/auth/signature';
+import { isStaticBuild } from '@/utils/build';
+import { AdvancedCopyRequest, PagesLookUpRequest } from 'types/ApiRequests';
 import {
   TranslationsResponse,
-  SearchResponse,
   AdvancedCopyRawResultResponse,
   LanguagesResponse,
   RecitersResponse,
@@ -30,20 +43,50 @@ import {
   VersesResponse,
   ChapterInfoResponse,
   FootnoteResponse,
+  ChapterResponse,
+  ReciterResponse,
+  TafsirContentResponse,
+  PagesLookUpResponse,
+  WordByWordTranslationsResponse,
 } from 'types/ApiResponses';
 import AudioData from 'types/AudioData';
 
 export const OFFLINE_ERROR = 'OFFLINE';
 
+export const X_AUTH_SIGNATURE = 'x-auth-signature';
+export const X_TIMESTAMP = 'x-timestamp';
+export const X_INTERNAL_CLIENT = 'x-internal-client';
+
 export const fetcher = async function fetcher<T>(
   input: RequestInfo,
-  init?: RequestInit,
+  init: RequestInit = {},
 ): Promise<T> {
   // if the user is not online when making the API call
   if (typeof window !== 'undefined' && !window.navigator.onLine) {
     throw new Error(OFFLINE_ERROR);
   }
-  const res = await fetch(input, init);
+
+  let reqInit = init;
+  if (isStaticBuild) {
+    const req: NextApiRequest = {
+      url: typeof input === 'string' ? input : input.url,
+      method: init.method || 'GET',
+      body: init.body,
+      headers: init.headers,
+      query: {},
+    } as NextApiRequest;
+
+    const { signature, timestamp } = generateSignature(req, req.url);
+    const headers = {
+      ...init.headers,
+      [X_AUTH_SIGNATURE]: signature,
+      [X_TIMESTAMP]: timestamp,
+      [X_INTERNAL_CLIENT]: process.env.INTERNAL_CLIENT_ID,
+    };
+    reqInit = { ...init, headers };
+  }
+
+  const res = await fetch(input, reqInit);
   if (!res.ok || res.status === 500 || res.status === 404) {
     throw res;
   }
@@ -51,11 +94,25 @@ export const fetcher = async function fetcher<T>(
   return camelizeKeys(json);
 };
 
+/**
+ * Get the verses of a specific chapter.
+ *
+ * @param {string | number} id the ID of the chapter.
+ * @param {string} locale the locale.
+ * @param {Record<string, unknown>} params optional parameters.
+ *
+ * @returns {Promise<VersesResponse>}
+ */
 export const getChapterVerses = async (
   id: string | number,
   locale: string,
   params?: Record<string, unknown>,
-): Promise<VersesResponse> => fetcher<VersesResponse>(makeVersesUrl(id, locale, params));
+): Promise<VersesResponse> => fetcher<VersesResponse>(makeVersesUrl(id, locale, params), {});
+
+export const getRangeVerses = async (
+  locale: string,
+  params?: Record<string, unknown>,
+): Promise<VersesResponse> => fetcher<VersesResponse>(makeByRangeVersesUrl(locale, params));
 
 /**
  * Get the current available translations with the name translated in the current language.
@@ -65,7 +122,18 @@ export const getChapterVerses = async (
  * @returns {Promise<TranslationsResponse>}
  */
 export const getAvailableTranslations = async (language: string): Promise<TranslationsResponse> =>
-  fetcher(makeTranslationsUrl(language));
+  fetcher(makeTranslationsUrl(language), {});
+
+/**
+ * Get the current available wbw translations with the name translated in the current language.
+ *
+ * @param {string} language we use this to get translated names of authors in specific the current language.
+ *
+ * @returns {Promise<WordByWordTranslationsResponse>}
+ */
+export const getAvailableWordByWordTranslations = async (
+  language: string,
+): Promise<WordByWordTranslationsResponse> => fetcher(makeWordByWordTranslationsUrl(language));
 
 /**
  * Get the current available languages with the name translated in the current language.
@@ -75,15 +143,23 @@ export const getAvailableTranslations = async (language: string): Promise<Transl
  * @returns {Promise<LanguagesResponse>}
  */
 export const getAvailableLanguages = async (language: string): Promise<LanguagesResponse> =>
-  fetcher(makeLanguagesUrl(language));
+  fetcher(makeLanguagesUrl(language), {});
 
 /**
  * Get list of available reciters.
  *
+ * @param {string} locale  the locale.
+ * @param {string[]} fields optional fields to include.
+ *
  * @returns {Promise<RecitersResponse>}
  */
-export const getAvailableReciters = async (): Promise<RecitersResponse> =>
-  fetcher(makeRecitersUrl());
+export const getAvailableReciters = async (
+  locale: string,
+  fields?: string[],
+): Promise<RecitersResponse> => fetcher(makeAvailableRecitersUrl(locale, fields), {});
+
+export const getReciterData = async (reciterId: string, locale: string): Promise<ReciterResponse> =>
+  fetcher(makeReciterUrl(reciterId, locale));
 
 /**
  * Get audio file for a specific reciter and chapter.
@@ -92,8 +168,10 @@ export const getAvailableReciters = async (): Promise<RecitersResponse> =>
  *
  * @param {number} reciterId
  * @param {number} chapter the id of the chapter
+ * @param {boolean} segments flag to include segments.
+ *
+ * @returns {Promise<AudioData>}
  */
-
 export const getChapterAudioData = async (
   reciterId: number,
   chapter: number,
@@ -101,6 +179,7 @@ export const getChapterAudioData = async (
 ): Promise<AudioData> => {
   const res = await fetcher<AudioDataResponse>(
     makeChapterAudioDataUrl(reciterId, chapter, segments),
+    {},
   );
 
   if (res.error) {
@@ -115,7 +194,10 @@ export const getChapterAudioData = async (
     throw new Error('No audio file found');
   }
 
-  return firstAudio;
+  return {
+    ...firstAudio,
+    reciterId,
+  };
 };
 
 /**
@@ -156,11 +238,12 @@ export const getAdvancedCopyRawResult = async (
 /**
  * Get the search results of a query.
  *
- * @param {SearchRequest} params
- * @returns  {Promise<SearchResponse>}
+ * @param {SearchRequestParams} params
+ * @returns  {Promise<NewSearchResponse>}
  */
-export const getSearchResults = async (params: SearchRequest): Promise<SearchResponse> =>
-  fetcher(makeSearchResultsUrl(params));
+export const getNewSearchResults = async <T extends SearchMode>(
+  params: SearchRequestParams<T>,
+): Promise<NewSearchResponse> => fetcher(makeNewSearchResultsUrl(params));
 
 /**
  * Get the list of tafsirs.
@@ -184,6 +267,18 @@ export const getChapterInfo = async (
 ): Promise<ChapterInfoResponse> => fetcher(makeChapterInfoUrl(chapterId, language));
 
 /**
+ * Get a chapter's.
+ *
+ * @param {string} chapterIdOrSlug
+ * @param {string} language
+ * @returns {Promise<ChapterInfoResponse>}
+ */
+export const getChapter = async (
+  chapterIdOrSlug: string,
+  language: string,
+): Promise<ChapterResponse> => fetcher(makeChapterUrl(chapterIdOrSlug, language));
+
+/**
  * Get the verses of a specific Juz.
  *
  * @param {string} id the ID of the Juz.
@@ -197,6 +292,36 @@ export const getJuzVerses = async (
   locale: string,
   params?: Record<string, unknown>,
 ): Promise<VersesResponse> => fetcher(makeJuzVersesUrl(id, locale, params));
+
+/**
+ * Get the verses of a specific Rub El Hizb.
+ *
+ * @param {string} id the ID of the Rub El Hizb.
+ * @param {string} locale  the locale.
+ * @param {string} params the params that we might need to include that differs from the default ones.
+ *
+ * @returns {Promise<VersesResponse>}
+ */
+export const getRubVerses = async (
+  id: string,
+  locale: string,
+  params?: Record<string, unknown>,
+): Promise<VersesResponse> => fetcher(makeRubVersesUrl(id, locale, params));
+
+/**
+ * Get the verses of a specific Hizb.
+ *
+ * @param {string} id the ID of the Hizb.
+ * @param {string} locale  the locale.
+ * @param {string} params the params that we might need to include that differs from the default ones.
+ *
+ * @returns {Promise<VersesResponse>}
+ */
+export const getHizbVerses = async (
+  id: string,
+  locale: string,
+  params?: Record<string, unknown>,
+): Promise<VersesResponse> => fetcher(makeHizbVersesUrl(id, locale, params));
 
 /**
  * Get the verses of a specific page.
@@ -222,3 +347,54 @@ export const getPageVerses = async (
  */
 export const getFootnote = async (footnoteId: string): Promise<FootnoteResponse> =>
   fetcher(makeFootnoteUrl(footnoteId));
+
+/**
+ * Get the footnote details.
+ *
+ * @param {PagesLookUpRequest} params
+ *
+ * @returns {Promise<PagesLookUpResponse>}
+ */
+export const getPagesLookup = async (params: PagesLookUpRequest): Promise<PagesLookUpResponse> =>
+  fetcher(makePagesLookupUrl(params));
+
+/**
+ * Get the chapter id by a slug.
+ *
+ * @param {string} slug
+ * @param {string} locale
+ * @returns {Promise<false|string>}
+ */
+export const getChapterIdBySlug = async (slug: string, locale: string): Promise<false | string> => {
+  try {
+    const chapterResponse = await getChapter(encodeURI(slug), locale);
+    return chapterResponse.chapter.id as string;
+  } catch (error) {
+    return false;
+  }
+};
+
+/**
+ * Get the Tafsir content of a verse by the tafsir ID.
+ *
+ * @param {string} tafsirIdOrSlug
+ * @param {string} verseKey
+ * @param {QuranFont} quranFont
+ * @param {MushafLines} mushafLines
+ * @returns {Promise<TafsirContentResponse>}
+ */
+export const getTafsirContent = (
+  tafsirIdOrSlug: string,
+  verseKey: string,
+  quranFont: QuranFont,
+  mushafLines: MushafLines,
+  locale: string,
+): Promise<TafsirContentResponse> => {
+  return fetcher(
+    makeTafsirContentUrl(tafsirIdOrSlug as string, verseKey, {
+      lang: locale,
+      quranFont,
+      mushafLines,
+    }),
+  );
+};

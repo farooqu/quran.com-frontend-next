@@ -1,7 +1,7 @@
 import getTextToCopy from './getTextCopy';
 
-import { textToBlob } from 'src/utils/blob';
-import copyText from 'src/utils/copyText';
+import { textToBlob } from '@/utils/blob';
+import copyText from '@/utils/copyText';
 
 /**
  * given these params,
@@ -15,7 +15,8 @@ const copyVerse = async ({
   rangeEndVerse,
   rangeStartVerse,
   shouldCopyFootnotes,
-  shouldCopyText,
+  shouldIncludeTranslatorName,
+  shouldCopyFont,
   translations,
   verseKey,
 }) => {
@@ -23,7 +24,8 @@ const copyVerse = async ({
     rangeEndVerse,
     rangeStartVerse,
     shouldCopyFootnotes,
-    shouldCopyText,
+    shouldCopyFont,
+    shouldIncludeTranslatorName,
     showRangeOfVerses,
     translations,
     verseKey,

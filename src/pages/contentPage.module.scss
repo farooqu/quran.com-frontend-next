@@ -1,24 +1,31 @@
+@use "src/styles/breakpoints";
+
 .contentPage {
-  padding-block-start: var(--spacing-mega);
-  max-width: 40rem;
-  margin-block-start: 0;
-  margin-block-end: 0;
-  margin-inline-start: auto;
-  margin-inline-end: auto;
-  padding-block-start: var(--spacing-mega);
-  padding-block-end: var(--spacing-mega);
-  padding-inline-start: var(--spacing-medium);
-  padding-inline-end: var(--spacing-medium);
-  h1 {
+  margin: auto;
+  @include breakpoints.desktop {
+    width: 65%;
+  }
+  @include breakpoints.smallerThanDesktop {
+    width: 90%;
+  }
+  * {
+    line-height: calc(1.3 * var(--line-height-xlarge));
+  }
+}
+
+.contentPage {
+  h1,
+  & .heading {
     font-size: var(--font-size-xlarge);
     line-height: var(--line-height-jumbo);
     margin-block-end: var(--spacing-xsmall);
     font-weight: var(--font-weight-bold);
   }
   h2 {
-    font-size: var(--font-size-large);
+    font-size: var(--font-size-normal);
+    line-height: var(--line-height-jumbo);
     margin-block-end: var(--spacing-xsmall);
-    font-weight: var(--font-weight-semibold);
+    font-weight: var(--font-weight-bold);
   }
   p {
     line-height: var(--line-height-large);
@@ -31,9 +38,27 @@
       opacity: var(--opacity-50);
     }
   }
+  ol {
+    list-style: lower-latin;
+  }
+  li {
+    margin-inline-start: var(--spacing-mega);
+  }
+  ul li {
+    list-style: disc;
+  }
+  i {
+    font-style: italic;
+    &.italicLarge {
+      font-size: var(--font-size-large);
+    }
+  }
+  b {
+    font-weight: var(--font-weight-bold);
+  }
 }
 
-.lokalizeImage {
+.image {
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -41,4 +66,47 @@
   padding-block-end: var(--spacing-medium);
   padding-inline-start: 0;
   padding-inline-end: 0;
+}
+
+.list {
+  list-style: unset;
+  padding-inline-start: var(--spacing-mega);
+}
+
+.underline {
+  text-decoration: underline;
+}
+
+.subListItem {
+  list-style-type: circle;
+  margin-inline-start: var(--spacing-large);
+}
+
+.ctaContainer {
+  padding-block: var(--spacing-large);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+
+  a {
+    text-decoration: none;
+  }
+}
+
+.section {
+  padding-block-start: var(--spacing-mega);
+}
+.subSection {
+  padding-block-start: var(--spacing-medium);
+}
+.innerSection {
+  padding-block: var(--spacing-medium);
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.subHeading {
+  font-weight: var(--font-weight-bold);
 }

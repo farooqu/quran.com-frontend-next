@@ -1,16 +1,18 @@
 import React from 'react';
 
-import GeoLocationPermissionListener from './GeoLocationPermissionListener';
+import DisableAnimationsUntilHydration from './DisableAnimationsUntilHydration';
+import GlobalPersistGateHydrationListener from './GlobalPersistGateHydrationListener';
 
-import GlobalKeyboardListeners from 'src/components/GlobalKeyboardListeners';
-import GlobalScrollListener from 'src/components/GlobalScrollListener';
+import GlobalKeyboardListeners from '@/components/GlobalKeyboardListeners';
+import GlobalScrollListener from '@/components/GlobalScrollListener';
 
 const GlobalListeners = () => {
   return (
     <>
       <GlobalKeyboardListeners />
       <GlobalScrollListener />
-      <GeoLocationPermissionListener />
+      <GlobalPersistGateHydrationListener />
+      <DisableAnimationsUntilHydration />
     </>
   );
 };

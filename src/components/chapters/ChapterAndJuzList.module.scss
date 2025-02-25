@@ -46,13 +46,17 @@
   padding-block-end: var(--spacing-medium);
 }
 
+.tabItem {
+  background-color: unset;
+}
+
 // sorter
 .sorter {
   display: flex;
   margin-block-start: var(--spacing-xsmall);
   justify-content: flex-end;
   align-items: baseline;
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-xsmall);
 }
 .sortByValue {
   display: flex;
@@ -81,4 +85,12 @@
 
 .uppercase {
   text-transform: uppercase;
+}
+
+.revelationOrderDisclaimer {
+  margin-block-start: var(--spacing-medium);
+  padding: var(--spacing-small);
+  border: 1px var(--color-borders-hairline) solid;
+  border-radius: var(--border-radius-default);
+  background-color: var(--color-success-faded);
 }

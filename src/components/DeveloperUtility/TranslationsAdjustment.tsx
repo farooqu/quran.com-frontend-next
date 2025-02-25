@@ -6,17 +6,17 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import styles from './TranslationsAdjustment.module.scss';
 
-import { getAvailableTranslations } from 'src/api';
 import {
   selectSelectedTranslations,
   setSelectedTranslations,
-} from 'src/redux/slices/QuranReader/translations';
-import { areArraysEqual, numbersToStringsArray } from 'src/utils/array';
+} from '@/redux/slices/QuranReader/translations';
+import { areArraysEqual, numbersToStringsArray } from '@/utils/array';
+import { getAvailableTranslations } from 'src/api';
 import AvailableTranslation from 'types/AvailableTranslation';
 
 const TranslationsAdjustment = () => {
   const dispatch = useDispatch();
-  const selectedTranslations = useSelector(selectSelectedTranslations, areArraysEqual);
+  const selectedTranslations = useSelector(selectSelectedTranslations, areArraysEqual) as number[];
   const { lang } = useTranslation();
   const [translations, setTranslations] = useState<AvailableTranslation[]>([]);
   const [isExpanded, setIsExpanded] = useState(false);

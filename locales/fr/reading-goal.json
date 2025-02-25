@@ -1,0 +1,130 @@
+{
+  "continue-reading": "Continuer la lecture",
+  "continuous": {
+    "description": "Votre objectif calculera votre progression sur un nombre de jours",
+    "title": "Sur une durée"
+  },
+  "create-plan": "Créer un plan",
+  "create-reading-goal": "Définir un objectif",
+  "daily-progress": "Progression quotidienne",
+  "daily": {
+    "description": "Votre objectif sera réinitialisé chaque jour",
+    "title": "Objectif quotidien"
+  },
+  "day-x": "Jour {{day}}",
+  "days": "Jours",
+  "duration": "Durée (jours)",
+  "ending-chapter": "Sourate finale",
+  "ending-verse": "Ayah finale",
+  "examples-subtitle": "Voici une liste d'objectifs communs. Vous pouvez également définir votre propre objectif.",
+  "examples-title": "Choisissez un objectif prédéfini ou créez votre propre objectif",
+  "examples": {
+    "custom": {
+      "description": "Définissez un objectif personnalisé qui vous convient",
+      "title": "Personnalisé"
+    },
+    "khatm": {
+      "description": "Un but classique de Khatm. Lire 1 Juz par jour",
+      "title": "Lire le Coran en 30 jours"
+    },
+    "time": {
+      "description": "Un objectif simple et adapté aux débutants",
+      "title": "Lire 10 minutes par jour"
+    },
+    "year": {
+      "description": "Lire le Coran à son rythme l'année prochaine",
+      "title": "Lire le Coran en un an"
+    }
+  },
+  "frequency-tab": {
+    "description": "Votre objectif doit-il être réinitialisé quotidiennement, ou bien après un certain nombre de jours ? Ne vous inquiétez pas, nous suivrons vos progrès quelle que soit la fréquence que vous choisissez.",
+    "title": "Choisissez une fréquence pour votre objectif"
+  },
+  "goal-done": {
+    "description": "Toute lecture supplémentaire sera enregistrée",
+    "title": "Vous avez atteint l'objectif du jour"
+  },
+  "goal-target": {
+    "description": "Combien de temps, de pages ou d'Ayahs devez-vous lire pour atteindre votre objectif ?",
+    "title": "Fixez-vous une but pour votre objectif"
+  },
+  "goal-type": {
+    "description": "Votre objectif doit-il être basé sur le temps, les pages ou une plage personnalisée (par exemple, 3 Juzs du Coran) ?",
+    "title": "Choisissez un critère pour votre objectif"
+  },
+  "goal-types": {
+    "pages": {
+      "description": "Votre objectif sera basé sur les pages",
+      "title": "Pages"
+    },
+    "range": {
+      "description": "Votre objectif sera basé sur une plage personnalisée d'Ayahs (ex. une Sourate, un Juz, voire tout le Coran)",
+      "title": "Plage personnalisée"
+    },
+    "time": {
+      "description": "Votre objectif sera basé sur le temps",
+      "title": "Temps"
+    }
+  },
+  "plus-x-more-days": {
+    "one": "+{{days}} jour de plus",
+    "other": "+{{days}} jours de plus"
+  },
+  "preview-schedule": {
+    "description": "Voici à quoi ressemblera votre objectif. Vous pourrez toujours le changer plus tard.",
+    "title": "Voici un aperçu de votre emploi du temps"
+  },
+  "progress": {
+    "complete": "L'objectif du jour est atteint 🎉",
+    "goal-complete": "Votre objectif est entièrement atteint 🎉",
+    "pages-goal": "lire {{pages}} page(s) du Coran",
+    "range-goal": "lire {{from}} à {{to}}",
+    "time-goal": "lire {{time}} du Coran"
+  },
+  "reading-goal": "Objectif de lecture",
+  "reading-goal-label": "Vous êtes sur un(e)",
+  "recommended": "Recommandé",
+  "remaining": "Reste pour aujourd'hui",
+  "remaining-days": {
+    "one": "{{days}} jour restant",
+    "other": "{{days}} jours restants"
+  },
+  "set-reading-goal-success": "Votre objectif de lecture a été défini avec succès.",
+  "start-journey": "Commencez votre voyage !",
+  "start-reading": "Commencer la lecture",
+  "starting-chapter": "Sourate initiale",
+  "starting-verse": "Ayah initiale",
+  "streak": "Série",
+  "streak-definition": "Une série est le nombre de jours consécutifs pendant lesquels vous avez lu le Coran.",
+  "timeline-meaning": "Que signifie votre chronologie ?",
+  "timeline-states": {
+    "checked": "Vous avez atteint votre objectif",
+    "filled": "Vous avez lu, mais pas assez pour atteindre votre objectif",
+    "none": "Vous n'avez encore rien lu ce jour-là",
+    "stroked": "Vous n'avez rien lu aujourd'hui"
+  },
+  "todays-goal": "Objectif du jour",
+  "view-progress": "Voir la progression",
+  "week-progress": "Progression de la semaine",
+  "x-days": {
+    "one": "{{days}} jour",
+    "other": "{{days}} jours"
+  },
+  "x-days-streak": "{{days}} jours consécutifs",
+  "x-hours": {
+    "one": "{{hours}} heure",
+    "other": "{{hours}} heures"
+  },
+  "x-minutes": {
+    "one": "{{minutes}} minute",
+    "other": "{{minutes}} minutes"
+  },
+  "x-pages": {
+    "one": "{{pages}} page",
+    "other": "{{pages}} pages"
+  },
+  "x-seconds": {
+    "one": "{{seconds}} seconde",
+    "other": "{{seconds}} secondes"
+  }
+}
