@@ -1,108 +1,67 @@
-import { useState } from 'react';
+import { useContext } from 'react';
 
+import { useSelector } from '@xstate/react';
 import useTranslation from 'next-translate/useTranslation';
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 
-import PauseIcon from '../../../../public/icons/pause.svg';
-import PlayIcon from '../../../../public/icons/play-arrow.svg';
-import { triggerPauseAudio, triggerPlayAudio } from '../EventTriggers';
-import SurahAudioMismatchModal from '../SurahAudioMismatchModal';
-
-import Button, { ButtonShape, ButtonVariant } from 'src/components/dls/Button/Button';
-import Spinner, { SpinnerSize } from 'src/components/dls/Spinner/Spinner';
-import useChapterIdsByUrlPath from 'src/hooks/useChapterId';
-import {
-  loadAndPlayAudioData,
-  selectAudioData,
-  selectAudioDataStatus,
-  selectAudioPlayerState,
-} from 'src/redux/slices/AudioPlayer/state';
-import AudioDataStatus from 'src/redux/types/AudioDataStatus';
-import { getChapterData } from 'src/utils/chapter';
-import { withStopPropagation } from 'src/utils/event';
+import Button, { ButtonShape, ButtonVariant } from '@/dls/Button/Button';
+import Spinner, { SpinnerSize } from '@/dls/Spinner/Spinner';
+import PauseIcon from '@/icons/pause.svg';
+import PlayIcon from '@/icons/play-arrow.svg';
+import { withStopPropagation } from '@/utils/event';
+import { logButtonClick } from '@/utils/eventLogger';
+import { selectIsLoading } from 'src/xstate/actors/audioPlayer/selectors';
+import { AudioPlayerMachineContext } from 'src/xstate/AudioPlayerMachineContext';
 
 const PlayPauseButton = () => {
-  const { t, lang } = useTranslation('common');
-  const dispatch = useDispatch();
+  const { t } = useTranslation('common');
 
-  const { isPlaying } = useSelector(selectAudioPlayerState, shallowEqual);
-  const isLoading = useSelector(selectAudioDataStatus) === AudioDataStatus.Loading;
+  const audioService = useContext(AudioPlayerMachineContext);
 
-  const audioData = useSelector(selectAudioData, shallowEqual);
-  const currentReadingChapterIds = useChapterIdsByUrlPath();
-  const currentAudioChapterId = audioData?.chapterId?.toString();
+  const isPlaying = useSelector(audioService, (state) =>
+    state.matches('VISIBLE.AUDIO_PLAYER_INITIATED.PLAYING'),
+  );
+  const isLoading = useSelector(audioService, selectIsLoading);
 
-  const [isMismatchModalVisible, setIsMismatchModalVisible] = useState(false);
-
-  // check if the current audio file matches the current reading chapter
-  // continue playing if it matches
-  // otherwise, show the mismatch modal
-  const onClickPlay = () => {
-    const noReadingChapterIdsFound = currentReadingChapterIds.length === 0; // e.g : homepage
-    if (currentReadingChapterIds.includes(currentAudioChapterId) || noReadingChapterIdsFound) {
-      triggerPlayAudio();
-    } else {
-      setIsMismatchModalVisible(true);
-    }
-  };
-
-  let button;
-
-  if (isLoading)
-    button = (
+  if (isLoading) {
+    return (
       <Button
         tooltip={`${t('loading')}...`}
         shape={ButtonShape.Circle}
         variant={ButtonVariant.Ghost}
-        onClick={withStopPropagation(triggerPauseAudio)}
+        isDisabled={isLoading}
       >
         <Spinner size={SpinnerSize.Large} />
       </Button>
     );
-  else if (isPlaying)
-    button = (
+  }
+  if (isPlaying) {
+    return (
       <Button
         tooltip={t('audio.player.pause')}
         shape={ButtonShape.Circle}
         variant={ButtonVariant.Ghost}
-        onClick={withStopPropagation(triggerPauseAudio)}
+        onClick={withStopPropagation(() => {
+          logButtonClick('audio_player_pause');
+          audioService.send('TOGGLE');
+        })}
       >
         <PauseIcon />
       </Button>
     );
-  else if (!isPlaying)
-    button = (
-      <Button
-        tooltip={t('audio.player.play')}
-        shape={ButtonShape.Circle}
-        variant={ButtonVariant.Ghost}
-        onClick={withStopPropagation(onClickPlay)}
-        shouldFlipOnRTL={false}
-      >
-        <PlayIcon />
-      </Button>
-    );
-
-  const [firstCurrentReadingChapterId] = currentReadingChapterIds; // get the first chapter in this page
+  }
   return (
-    <>
-      {button}
-      <SurahAudioMismatchModal
-        isOpen={isMismatchModalVisible}
-        currentAudioChapter={getChapterData(currentAudioChapterId, lang)?.transliteratedName}
-        currentReadingChapter={
-          getChapterData(firstCurrentReadingChapterId, lang)?.transliteratedName
-        }
-        onContinue={() => {
-          triggerPlayAudio();
-          setIsMismatchModalVisible(false);
-        }}
-        onStartOver={() => {
-          dispatch(loadAndPlayAudioData(Number(firstCurrentReadingChapterId)));
-          setIsMismatchModalVisible(false);
-        }}
-      />
-    </>
+    <Button
+      tooltip={t('audio.player.play')}
+      shape={ButtonShape.Circle}
+      variant={ButtonVariant.Ghost}
+      onClick={withStopPropagation(() => {
+        logButtonClick('audio_player_play');
+        audioService.send('TOGGLE');
+      })}
+      shouldFlipOnRTL={false}
+    >
+      <PlayIcon />
+    </Button>
   );
 };
 

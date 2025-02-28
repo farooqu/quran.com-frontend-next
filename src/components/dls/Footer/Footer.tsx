@@ -1,67 +1,29 @@
-import useTranslation from 'next-translate/useTranslation';
+import { useRouter } from 'next/router';
 
-import QSimpleIcon from '../../../../public/icons/Q_simple.svg';
-
+import BottomSection from './BottomSection';
 import styles from './Footer.module.scss';
-
-import Link, { LinkVariant } from 'src/components/dls/Link/Link';
+import Links from './Links';
+import TitleAndDescription from './TitleAndDescription';
 
 const Footer = () => {
-  const { t } = useTranslation('common');
-  const currentYear = new Date().getFullYear();
+  const router = useRouter();
+
+  // Don't render the footer on login pages
+  if (router.pathname.includes('/login')) {
+    return null;
+  }
+
   return (
-    <div className={styles.container}>
-      <div className={styles.iconContainer}>
-        <QSimpleIcon />
-      </div>
-      <div>
-        <div className={styles.title}>{t('home:footer.title')}</div>
-        <div className={styles.itemsContainer}>
-          <div>
-            <Link variant={LinkVariant.Primary} href="/privacy">
-              {t('privacy')}
-            </Link>
-          </div>
-          <div>
-            <Link variant={LinkVariant.Primary} href="/about-us">
-              {t('about')}
-            </Link>
-          </div>
-          <div>
-            <Link variant={LinkVariant.Primary} href="/developers">
-              {t('developers')}
-            </Link>
-          </div>
-          {/* <div>
-            <Link variant={LinkVariant.Primary} href="/terms">
-              Terms
-            </Link>
-          </div> */}
-          <div>
-            <Link variant={LinkVariant.Primary} href="https://feedback.quran.com">
-              {t('feedback')}
-            </Link>
-          </div>
-          <div>
-            <Link variant={LinkVariant.Primary} href="/support">
-              {t('help')}
-            </Link>
-          </div>
-          <div>
-            <Link variant={LinkVariant.Primary} href="/sitemap.xml">
-              {t('sitemap')}
-            </Link>
-          </div>
+    <footer>
+      <div className={styles.flowItem}>
+        <div className={styles.container}>
+          <TitleAndDescription />
+          <Links />
         </div>
-        <div className={styles.copyright}>
-          © {currentYear}{' '}
-          <Link href="https://quran.com" variant={LinkVariant.Highlight}>
-            {t('quran-com')}
-          </Link>
-          . {t('home:footer.rights')}
-        </div>
+        <BottomSection />
       </div>
-    </div>
+      <div className={styles.emptySpacePlaceholder} />
+    </footer>
   );
 };
 

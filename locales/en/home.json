@@ -1,48 +1,66 @@
 {
-    "footer": {
-        "rights": "All Rights Reserved",
-        "title": "Read, study, and learn The Noble Quran."
+  "achieve-quran-goals": "Achieve Your Quran Goals",
+  "begin": "Begin",
+  "chapters-and-verses": "Chapters and Verses",
+  "continue-read": "Continue Reading",
+  "explore-topics": "Explore Topics",
+  "first-time-reading": "New to the Quran? <link>Start here</link>",
+  "know-someone": "Grow with us this <modalLink>Ramadan</modalLink>",
+  "learning-plan": "Learning Plans",
+  "listen-to-radio": "Listen to Quran Radio",
+  "my-quran": "My Quran",
+  "navigate-quran": "Navigate Quran",
+  "no-bookmarks": "You do not have any bookmarks yet",
+  "no-recently-read": "You do not have any reading sessions yet",
+  "noble-quran": "The Noble Quran",
+  "popular": "Popular",
+  "qgj": {
+    "learning-plans": {
+      "cta": {
+        "all-plans": "See All Plans",
+        "my-plans": "My Plans"
+      },
+      "desc": {
+        "logged-in": "Ever started a learning program and got off track halfway through? Learning plans are divided into manageable chunks and we track your progress until you reach the finish line. Explore our current offering of courses today",
+        "logged-in-no-plans": "Ever started a learning program and got off track halfway through? Learning plans are divided into manageable chunks and we track your progress until you reach the finish line. Explore our current offering of courses today",
+        "logged-out": "Ever started a learning program and got off track halfway through? Learning plans are divided into manageable chunks and we track your progress until you reach the finish line. Explore our current offering of courses today"
+      },
+      "title": "Learning Plans"
     },
-    "hijri-date": {
-        "format": "{{month}} {{date}}, {{year}} AH",
-        "month": {
-            "1": "Muharram",
-            "10": "Shawwal",
-            "11": "Dhu Al-Qida",
-            "2": "Safar",
-            "3": "Rabi' I",
-            "4": "Rabi' II",
-            "5": "Jumada I",
-            "6": "Jumada Akhira",
-            "7": "Rajab",
-            "8": "Sha'ban",
-            "9": "Ramadan"
-        }
+    "quran-reading-goals": {
+      "desc": {
+        "logged-out": "Do you want to read 10 minutes a day, complete a Juz in a month, or finish the entire Quran in a year? It’s easy to create a custom goal and track your progress"
+      },
+      "title": "Custom Quran Reading Goals"
     },
-    "no-bookmarks": "You do not have any bookmarks yet",
-    "prayer-names": {
-        "asr": "Asr",
-        "dhuhr": "Dhuhr",
-        "fajr": "Fajr",
-        "isha": "Isha",
-        "maghrib": "Maghrib",
-        "sunrise": "Sunrise"
-    },
-    "prayer-times": {
-        "use-location": "Use accurate location"
-    },
-    "recently-read": "Recently Read",
-    "tab": {
-        "bookmarks": "Bookmarks",
-        "popular": "Popular"
-    },
-    "voice": {
-        "trigger": "Quick access to anything"
-    },
-    "welcome": {
-        "desc": "We are actively adding new features and pushing changes. If you run into any issues please do provide feedback.",
-        "feedback-cta": "Provide Feedback",
-        "join-cta": "Join Discord Community",
-        "title": "Welcome to the Pre-Release Beta of the new Quran.com!"
-    }
+    "title": "Quran Growth Journey"
+  },
+  "qr-community": "Read today’s featured Verses and Reflections",
+  "ramadan-activities-cta": "<link>Follow the <b>Global Quranic Calendar</b> for weekly readings, inspiring podcasts, and a call to reflect!</link>",
+  "ramadan": {
+    "header": "Tools to Deepen Your Connection with the Quran",
+    "title": "Ready for Ramadan?"
+  },
+  "read-juz": "Read Juz",
+  "recently-read": "Recently Read",
+  "revelation-order-disclaimer": "This view shows the chronological order of Surahs in the Quran based on when they were revealed to the Prophet Muhammad <hover>ﷺ</hover>. The chronology is a subject of scholarly opinion and some Surahs were revealed in parts at different times. The ordering here is based on the work of <link>Tanzil.net</link>. [Note: the compiled Mushaf order from al-Fatiha to al-Nas is a matter of consensus.]",
+  "see-more-learning-plans": "See More",
+  "set-custom-goal": "Set a Goal",
+  "share-quran": {
+    "description": "Help spread the Quran to new learners",
+    "title": "Share the Quran!"
+  },
+  "start-read": "Start Reading",
+  "stay-consistent": "Track Streaks, Create Custom Goals, Stay Consistent",
+  "tab": {
+    "bookmarks": "Bookmarks",
+    "popular": "Popular"
+  },
+  "view-all-bookmarks": "View all bookmarks",
+  "voice": {
+    "trigger": "Quick access to anything"
+  },
+  "welcome": {
+    "title": "It's the Month of the Quran! Help millions of users get access to the guidance of the Quran."
+  }
 }

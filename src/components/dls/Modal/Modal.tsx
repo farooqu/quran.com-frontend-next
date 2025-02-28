@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import Action from './Action';
 import Body from './Body';
 import CloseAction from './CloseAction';
-import Content from './Content';
+import Content, { ModalSize } from './Content';
 import Footer from './Footer';
 import Header from './Header';
 import styles from './Modal.module.scss';
@@ -22,34 +22,43 @@ type ModalProps = {
   onClickOutside?: () => void;
   isPropagationStopped?: boolean;
   contentClassName?: string;
+  onEscapeKeyDown?: () => void;
+  size?: ModalSize;
 };
+
 const Modal = ({
   children,
   trigger,
   isOpen,
   onClickOutside,
+  onEscapeKeyDown,
   isPropagationStopped,
   contentClassName,
   isBottomSheetOnMobile = true,
   isInvertedOverlay = false,
+  size,
 }: ModalProps) => (
   <DialogPrimitive.Root open={isOpen}>
-    <DialogPrimitive.Overlay
-      className={classNames(styles.overlay, { [styles.invertedOverlay]: isInvertedOverlay })}
-    />
     {trigger && (
       <DialogPrimitive.Trigger asChild>
         <div>{trigger}</div>
       </DialogPrimitive.Trigger>
     )}
-    <Content
-      isPropagationStopped={isPropagationStopped}
-      onInteractOutside={onClickOutside}
-      isBottomSheetOnMobile={isBottomSheetOnMobile}
-      contentClassName={contentClassName}
-    >
-      {children}
-    </Content>
+    <DialogPrimitive.Portal>
+      <DialogPrimitive.Overlay
+        className={classNames(styles.overlay, { [styles.invertedOverlay]: isInvertedOverlay })}
+      />
+      <Content
+        isPropagationStopped={isPropagationStopped}
+        onEscapeKeyDown={onEscapeKeyDown}
+        onPointerDownOutside={onClickOutside}
+        isBottomSheetOnMobile={isBottomSheetOnMobile}
+        contentClassName={contentClassName}
+        size={size}
+      >
+        {children}
+      </Content>
+    </DialogPrimitive.Portal>
   </DialogPrimitive.Root>
 );
 

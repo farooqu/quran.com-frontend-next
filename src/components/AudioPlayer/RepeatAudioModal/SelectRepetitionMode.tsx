@@ -2,14 +2,18 @@ import { useMemo } from 'react';
 
 import useTranslation from 'next-translate/useTranslation';
 
-import Combobox from 'src/components/dls/Forms/Combobox';
-import RadioGroup, { RadioGroupOrientation } from 'src/components/dls/Forms/RadioGroup/RadioGroup';
-import { RangeSelectorType } from 'src/components/Verse/AdvancedCopy/SelectorContainer';
-import VerseRangeSelector from 'src/components/Verse/AdvancedCopy/VersesRangeSelector';
+import styles from './RepeatSetting.module.scss';
+
+import { RangeSelectorType } from '@/components/Verse/AdvancedCopy/SelectorContainer';
+import VerseRangeSelector from '@/components/Verse/AdvancedCopy/VersesRangeSelector';
+import Combobox from '@/dls/Forms/Combobox';
+import Switch from '@/dls/Switch/Switch';
+import { toLocalizedVerseKey } from '@/utils/locale';
 
 export enum RepetitionMode {
   Single = 'single',
   Range = 'range',
+  Chapter = 'chapter',
 }
 
 const SelectRepetitionMode = ({
@@ -22,31 +26,35 @@ const SelectRepetitionMode = ({
   onRepetitionModeChange,
   verseKey,
 }) => {
-  const { t } = useTranslation('common');
-  const repetitionModeRadioGroupItems = useMemo(
+  const { t, lang } = useTranslation('common');
+  const repetitionModeItems = useMemo(
     () => [
       {
         value: RepetitionMode.Single,
-        id: RepetitionMode.Single,
-        label: t('audio.player.single-verse'),
+        name: t('audio.player.single-verse'),
       },
+
       {
         value: RepetitionMode.Range,
-        id: RepetitionMode.Range,
-        label: t('audio.player.verses-range'),
+        name: t('audio.player.verses-range'),
+      },
+      {
+        value: RepetitionMode.Chapter,
+        name: t('audio.player.full-surah'),
       },
     ],
     [t],
   );
+
   return (
     <>
-      <RadioGroup
-        label="range"
-        orientation={RadioGroupOrientation.Horizontal}
-        onChange={onRepetitionModeChange}
-        value={repetitionMode}
-        items={repetitionModeRadioGroupItems}
-      />
+      <div className={styles.switchContainer}>
+        <Switch
+          items={repetitionModeItems}
+          selected={repetitionMode}
+          onSelect={onRepetitionModeChange}
+        />
+      </div>
       {repetitionMode === RepetitionMode.Single && (
         <Combobox
           clearable={false}
@@ -55,7 +63,7 @@ const SelectRepetitionMode = ({
           items={comboboxVerseItems}
           onChange={(val) => onSingleVerseChange(val)}
           placeholder={t('audio.player.search-verse')}
-          initialInputValue={verseKey}
+          initialInputValue={verseKey ? toLocalizedVerseKey(verseKey, lang) : null}
         />
       )}
       {repetitionMode === RepetitionMode.Range && (
@@ -67,8 +75,8 @@ const SelectRepetitionMode = ({
             }}
             dropdownItems={comboboxVerseItems}
             isVisible
-            rangeStartVerse={rangeStartVerse}
-            rangeEndVerse={rangeEndVerse}
+            rangeStartVerse={rangeStartVerse ? toLocalizedVerseKey(rangeStartVerse, lang) : null}
+            rangeEndVerse={rangeEndVerse ? toLocalizedVerseKey(rangeEndVerse, lang) : null}
           />
         </div>
       )}

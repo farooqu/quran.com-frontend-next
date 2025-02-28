@@ -1,73 +1,52 @@
-import React, { MutableRefObject } from 'react';
+import React, { useContext, useEffect } from 'react';
 
-import { shallowEqual, useSelector } from 'react-redux';
+import { useSelector } from '@xstate/react';
 
 import AudioKeyBoardListeners from '../AudioKeyboardListeners';
 import AudioPlayerSlider from '../AudioPlayerSlider';
-import AudioRepeatManager from '../AudioRepeatManager/AudioRepeatManager';
-import { togglePlaying, triggerPauseAudio, triggerPlayAudio, triggerSeek } from '../EventTriggers';
-import MediaSessionApiListeners from '../MediaSessionApiListeners';
 import PlaybackControls from '../PlaybackControls';
-import QuranReaderHighlightDispatcher from '../QuranReaderHighlightDispatcher';
+import RadioPlaybackControl from '../RadioPlaybackControl';
 
 import styles from './AudioPlayerBody.module.scss';
 
-import { selectReciter } from 'src/redux/slices/AudioPlayer/state';
-import AudioData from 'types/AudioData';
+import { useOnboarding } from '@/components/Onboarding/OnboardingProvider';
+import OnboardingGroup from '@/types/OnboardingGroup';
+import { AudioPlayerMachineContext } from 'src/xstate/AudioPlayerMachineContext';
 
-interface Props {
-  audioPlayerElRef: MutableRefObject<HTMLAudioElement>;
-  isMobileMinimizedForScrolling: boolean;
-  audioData: AudioData;
-}
+const AudioPlayerBody = () => {
+  const audioService = useContext(AudioPlayerMachineContext);
+  const isRadioMode = useSelector(audioService, (state) => !!state.context.radioActor);
+  const { isActive, activeStepGroup, activeStepIndex, nextStep } = useOnboarding();
 
-const AudioPlayerBody: React.FC<Props> = ({
-  audioPlayerElRef,
-  isMobileMinimizedForScrolling,
-  audioData,
-}) => {
-  const { id: reciterId } = useSelector(selectReciter, shallowEqual);
+  // If the user is in the reading experience onboarding and clicked on the play button, then we should automatically go to the next step when the audio player is mounted.
+  useEffect(() => {
+    if (
+      isActive &&
+      activeStepGroup === OnboardingGroup.READING_EXPERIENCE &&
+      activeStepIndex === 1
+    ) {
+      nextStep();
+    }
+  }, [isActive, activeStepGroup, activeStepIndex, nextStep]);
+
   return (
     <>
       <div className={styles.innerContainer}>
         <AudioKeyBoardListeners
-          seek={(seekDuration) => {
-            triggerSeek(seekDuration);
-          }}
-          togglePlaying={() => togglePlaying()}
+          togglePlaying={() => audioService.send('TOGGLE')}
           isAudioPlayerHidden={false}
         />
-        {reciterId && audioData?.chapterId && (
-          <QuranReaderHighlightDispatcher
-            audioPlayerElRef={audioPlayerElRef}
-            reciterId={reciterId}
-            chapterId={audioData?.chapterId}
-          />
+        {!isRadioMode && (
+          <div className={styles.sliderContainer}>
+            <AudioPlayerSlider />
+          </div>
         )}
-        {reciterId && audioData?.chapterId && (
-          <AudioRepeatManager
-            audioPlayerElRef={audioPlayerElRef}
-            reciterId={reciterId}
-            chapterId={audioData?.chapterId}
-          />
-        )}
-        <MediaSessionApiListeners
-          play={triggerPlayAudio}
-          pause={triggerPauseAudio}
-          seek={(seekDuration) => {
-            triggerSeek(seekDuration);
-          }}
-          playNextTrack={null}
-          playPreviousTrack={null}
-        />
-        <div className={styles.sliderContainer}>
-          <AudioPlayerSlider
-            audioPlayerElRef={audioPlayerElRef}
-            isMobileMinimizedForScrolling={isMobileMinimizedForScrolling}
-          />
-        </div>
       </div>
-      <PlaybackControls />
+      {isRadioMode ? (
+        <RadioPlaybackControl radioActor={audioService.getSnapshot().context.radioActor} />
+      ) : (
+        <PlaybackControls />
+      )}
     </>
   );
 };

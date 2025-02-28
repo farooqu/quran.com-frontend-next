@@ -4,13 +4,18 @@ import Row from './Row';
 import styles from './Section.module.scss';
 import Title from './Title';
 
-import Separator from 'src/components/dls/Separator/Separator';
+import Separator, { SeparatorWeight } from '@/dls/Separator/Separator';
 
-const Section = ({ children }) => (
-  <div className={styles.section}>
+interface SectionProps {
+  id?: string;
+  children?: React.ReactNode;
+}
+
+const Section = ({ children, ...props }: SectionProps) => (
+  <div className={styles.section} {...props}>
     {children}
     <div className={styles.separator}>
-      <Separator />
+      <Separator weight={SeparatorWeight.Bold} />
     </div>
   </div>
 );

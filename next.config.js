@@ -1,3 +1,4 @@
+/* eslint-disable max-lines */
 /* eslint-disable react-func/max-lines-per-function */
 /* eslint-disable no-param-reassign */
 const path = require('path');
@@ -5,28 +6,44 @@ const path = require('path');
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE_BUNDLE === 'true',
 });
-// const { withSentryConfig } = require('@sentry/nextjs'); // disabled temporarily until next 12 supports it: https://github.com/vercel/next.js/discussions/30137#discussioncomment-1538436
-const withPlugins = require('next-compose-plugins');
+const { withSentryConfig } = require('@sentry/nextjs');
 const withFonts = require('next-fonts');
 const withPWA = require('next-pwa');
-const runtimeCaching = require('next-pwa/cache');
-const nextTranslate = require('next-translate');
+const nextTranslate = require('next-translate-plugin');
 
 const securityHeaders = require('./configs/SecurityHeaders.js');
+const runtimeCaching = require('./pwa-runtime-config.js');
 
 const isDev = process.env.NEXT_PUBLIC_VERCEL_ENV === 'development';
-const config = {
+const isProduction = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
+const withPWAConfig = withPWA({
+  dest: 'public',
+  disable: !isProduction,
+  mode: isProduction ? 'production' : 'development',
+  publicExcludes: [
+    '!fonts/**/!(sura_names|Figtree)*', // exclude pre-caching all fonts that are not sura_names or Figtree
+    '!icons/**', // exclude all icons
+    '!images/**/!(background|homepage)*', // don't pre-cache except background.jpg and homepage.png
+  ],
+  runtimeCaching,
+});
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  productionBrowserSourceMaps: true,
+  swcMinify: true,
   images: {
     formats: ['image/avif', 'image/webp'],
-    domains: ['cdn.qurancdn.com', 'vercel.com', 'now.sh', 'quran.com', 'static.quran.com'],
+    domains: [
+      'cdn.qurancdn.com',
+      'static.qurancdn.com',
+      'vercel.com',
+      'now.sh',
+      'quran.com',
+      'images.quran.com',
+    ],
   },
-  pwa: {
-    disable: isDev,
-    dest: 'public',
-    runtimeCaching,
-    publicExcludes: ['!fonts/v1/**/*', '!fonts/v2/**/*'],
-  },
-  // this is needed to support importing audioWorklet nodes. {@see https://github.com/webpack/webpack/issues/11543#issuecomment-826897590}
   webpack: (webpackConfig) => {
     webpackConfig.resolve = {
       ...webpackConfig.resolve,
@@ -56,7 +73,12 @@ const config = {
             svgoConfig: {
               plugins: [
                 {
-                  removeViewBox: false,
+                  name: 'preset-default',
+                  params: {
+                    overrides: {
+                      removeViewBox: false,
+                    },
+                  },
                 },
               ],
             },
@@ -67,18 +89,7 @@ const config = {
 
     return webpackConfig;
   },
-  SentryWebpackPluginOptions: {
-    // Additional config options for the Sentry Webpack plugin. Keep in mind that
-    // the following options are set automatically, and overriding them is not
-    // recommended:
-    //   release, url, org, project, authToken, configFile, stripPrefix,
-    //   urlPrefix, include, ignore
-
-    silent: true, // Suppresses all logs
-    // For all available options, see:
-    // https://github.com/getsentry/sentry-webpack-plugin#options.
-  },
-  async headers() {
+  headers: async () => {
     return isDev
       ? []
       : [
@@ -95,42 +106,70 @@ const config = {
               },
             ],
           },
+          {
+            source: '/images/:image*', // match wildcard images' path which will match any image file on any level under /images.
+            headers: [
+              {
+                key: 'cache-control',
+                value: 'public, max-age=604800, immutable', // Max-age is 1 week. immutable indicates that the image will not change over the expiry time.
+              },
+            ],
+          },
+          {
+            source: '/icons/:icon*', // match wildcard icons' path which will match any icon file on any level under /icons.
+            headers: [
+              {
+                key: 'cache-control',
+                value: 'public, max-age=604800, immutable', // Max-age is 1 week. immutable indicates that the icon will not change over the expiry time.
+              },
+            ],
+          },
         ];
   },
-  async redirects() {
-    return [
-      {
-        source: '/:surah/:from(\\d{1,})/:to(\\d{1,})', // 1/2/3 => 1/2-3
-        destination: '/:surah/:from-:to',
-        permanent: true,
-      },
-      {
-        source: '/:surah/:from(\\d{1,})\\::to(\\d{1,})', // 1/2:3 => 1/2-3
-        destination: '/:surah/:from-:to',
-        permanent: true,
-      },
-      {
-        source: '/:surah\\::from(\\d{1,})\\::to(\\d{1,})', // 1:2:3 => 1/2-3
-        destination: '/:surah/:from-:to',
-        permanent: true,
-      },
-      {
-        source: '/:surah(\\d{1,})-:from\\::to', // 1-2:3 => 1/2-3
-        destination: '/:surah/:from-:to',
-        permanent: true,
-      },
-      {
-        source: '/:surah(\\d{1,})-:from(\\d{1,})-:to(\\d{1,})', // 1-2-3 => 1/2-3
-        destination: '/:surah/:from-:to',
-        permanent: true,
-      },
-      {
-        source: '/:surah(\\d{1,})\\::from(\\d{1,})-:to(\\d{1,})', // 1:2-3 => 1/2-3
-        destination: '/:surah/:from-:to',
-        permanent: true,
-      },
-    ];
+  redirects: async () => [
+    {
+      source: '/:surah/:from(\\d{1,})\\::to(\\d{1,})', // 1/2:3 => 1/2-3
+      destination: '/:surah/:from-:to',
+      permanent: true,
+    },
+    {
+      source: '/:surah\\::from(\\d{1,})\\::to(\\d{1,})', // 1:2:3 => 1/2-3
+      destination: '/:surah/:from-:to',
+      permanent: true,
+    },
+    {
+      source: '/:surah(\\d{1,})-:from\\::to', // 1-2:3 => 1/2-3
+      destination: '/:surah/:from-:to',
+      permanent: true,
+    },
+    {
+      source: '/:surah(\\d{1,})-:from(\\d{1,})-:to(\\d{1,})', // 1-2-3 => 1/2-3
+      destination: '/:surah/:from-:to',
+      permanent: true,
+    },
+    {
+      source: '/:surah(\\d{1,})\\::from(\\d{1,})-:to(\\d{1,})', // 1:2-3 => 1/2-3
+      destination: '/:surah/:from-:to',
+      permanent: true,
+    },
+  ],
+  compiler: {
+    removeConsole: !isDev,
   },
 };
 
-module.exports = withPlugins([withBundleAnalyzer, withPWA, withFonts, nextTranslate], config);
+// Apply plugins
+const configWithPlugins = withBundleAnalyzer(withFonts(nextTranslate(withPWAConfig(nextConfig))));
+
+// Apply Sentry configuration
+module.exports = withSentryConfig(
+  configWithPlugins,
+  {
+    silent: true,
+  },
+  {
+    hideSourceMaps: !isDev,
+    // Additional config options for the Sentry Webpack plugin
+    // ... (any additional Sentry options)
+  },
+);

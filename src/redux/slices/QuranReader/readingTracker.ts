@@ -1,7 +1,10 @@
+/* eslint-disable react-func/max-lines-per-function */
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { RootState } from 'src/redux/RootState';
-import { getDistanceBetweenVerses } from 'src/utils/verse';
+import { RootState } from '@/redux/RootState';
+import SliceName from '@/redux/types/SliceName';
+import { getDistanceBetweenVerses } from '@/utils/verse';
+import ChaptersData from 'types/ChaptersData';
 
 interface LastReadVerse {
   verseKey: string;
@@ -10,9 +13,11 @@ interface LastReadVerse {
   hizb: string;
 }
 
+export type RecentReadingSessions = Record<string, number>;
+
 export type ReadingTracker = {
   lastReadVerse: LastReadVerse;
-  recentReadingSessions: Record<string, boolean>;
+  recentReadingSessions: RecentReadingSessions;
 };
 
 const initialState: ReadingTracker = {
@@ -24,18 +29,28 @@ const NEW_SESSION_BOUNDARY = 20;
 const MAXIMUM_NUMBER_OF_SESSIONS = 10;
 
 export const readingTrackerSlice = createSlice({
-  name: 'readingTracker',
+  name: SliceName.READING_TRACKER,
   initialState,
   reducers: {
-    setLastReadVerse: (state: ReadingTracker, action: PayloadAction<LastReadVerse>) => {
+    setLastReadVerse: (
+      state: ReadingTracker,
+      action: PayloadAction<{
+        lastReadVerse: LastReadVerse;
+        chaptersData: ChaptersData;
+      }>,
+    ) => {
+      const { lastReadVerse, chaptersData } = action.payload;
       let newRecentReadingSessions = { ...state.recentReadingSessions };
       // if the verse key already exists, and he re-visited it again, we need to mark it as the latest session.
-      if (newRecentReadingSessions[action.payload.verseKey]) {
+      if (newRecentReadingSessions[lastReadVerse.verseKey]) {
         // delete the old entry
-        delete newRecentReadingSessions[action.payload.verseKey];
+        delete newRecentReadingSessions[lastReadVerse.verseKey];
         // insert the same entry again but at the beginning
-        newRecentReadingSessions = { [action.payload.verseKey]: true, ...newRecentReadingSessions };
-        return generateNewState(state, action.payload, newRecentReadingSessions);
+        newRecentReadingSessions = {
+          [lastReadVerse.verseKey]: +new Date(),
+          ...newRecentReadingSessions,
+        };
+        return generateNewState(state, lastReadVerse, newRecentReadingSessions);
       }
       const sessionsVerseKeys = Object.keys(newRecentReadingSessions);
       const numberOfSessions = sessionsVerseKeys.length;
@@ -43,21 +58,30 @@ export const readingTrackerSlice = createSlice({
       // if there are some last read sessions already and the new verse key is not far enough to be considered a new session
       if (
         numberOfSessions &&
-        getDistanceBetweenVerses(lastReadingSessionVerseKey, action.payload.verseKey) <=
-          NEW_SESSION_BOUNDARY
+        getDistanceBetweenVerses(
+          chaptersData,
+          lastReadingSessionVerseKey,
+          lastReadVerse.verseKey,
+        ) <= NEW_SESSION_BOUNDARY
       ) {
         delete newRecentReadingSessions[lastReadingSessionVerseKey];
-        newRecentReadingSessions = { [action.payload.verseKey]: true, ...newRecentReadingSessions };
-        return generateNewState(state, action.payload, newRecentReadingSessions);
+        newRecentReadingSessions = {
+          [lastReadVerse.verseKey]: +new Date(),
+          ...newRecentReadingSessions,
+        };
+        return generateNewState(state, lastReadVerse, newRecentReadingSessions);
       }
       const earliestSession = sessionsVerseKeys[numberOfSessions - 1];
       // insert a new entry at the beginning
-      newRecentReadingSessions = { [action.payload.verseKey]: true, ...newRecentReadingSessions };
+      newRecentReadingSessions = {
+        [lastReadVerse.verseKey]: +new Date(),
+        ...newRecentReadingSessions,
+      };
       // if the number of sessions already exceeded the maximum, delete the latest session
       if (numberOfSessions + 1 > MAXIMUM_NUMBER_OF_SESSIONS) {
         delete newRecentReadingSessions[earliestSession];
       }
-      return generateNewState(state, action.payload, newRecentReadingSessions);
+      return generateNewState(state, lastReadVerse, newRecentReadingSessions);
     },
   },
 });
@@ -73,7 +97,7 @@ export const readingTrackerSlice = createSlice({
 const generateNewState = (
   state: ReadingTracker,
   lastReadVerse: LastReadVerse,
-  newRecentReadingSessions: Record<string, boolean>,
+  newRecentReadingSessions: Record<string, number>,
 ): ReadingTracker => {
   return {
     ...state,
@@ -87,5 +111,10 @@ export const { setLastReadVerse } = readingTrackerSlice.actions;
 export const selectLastReadVerseKey = (state: RootState) => state.readingTracker.lastReadVerse;
 export const selectRecentReadingSessions = (state: RootState) =>
   state.readingTracker.recentReadingSessions;
+export const selectedLastReadPage = (state: RootState) => state.readingTracker.lastReadVerse.page;
+export const selectIsVerseKeySelected = (verseKey: string) => (state: RootState) => {
+  const lastReadVerseKey = selectLastReadVerseKey(state);
+  return verseKey === lastReadVerseKey.verseKey;
+};
 
 export default readingTrackerSlice.reducer;

@@ -1,39 +1,73 @@
 import React from 'react';
 
+import { useSelector } from 'react-redux';
+
+import RevelationOrderNavigationNotice, {
+  RevelationOrderNavigationNoticeView,
+} from '../RevelationOrderNavigationNotice';
+
 import ChapterControls from './ChapterControls';
 import styles from './EndOfScrollingControls.module.scss';
+import HizbControls from './HizbControls';
 import JuzControls from './JuzControls';
 import PageControls from './PageControls';
-import TafsirControls from './TafsirControls';
+import QuranReaderReadingStreak from './QuranReaderReadingStreak';
+import RubControls from './RubControls';
 import VerseControls from './VerseControls';
 
-import { QuranReaderDataType } from 'types/QuranReader';
+import HomepageFundraisingBanner from '@/components/Fundraising/HomepageFundraisingBanner';
+import { selectIsReadingByRevelationOrder } from '@/redux/slices/revelationOrder';
+import { QuranReaderDataType } from '@/types/QuranReader';
+import { VersesResponse } from 'types/ApiResponses';
 import Verse from 'types/Verse';
 
 interface Props {
   quranReaderDataType: QuranReaderDataType;
   lastVerse: Verse;
+  initialData: VersesResponse;
 }
 
-const EndOfScrollingControls: React.FC<Props> = ({ quranReaderDataType, lastVerse }) => {
-  const isTafsirIdSetFromUrl = quranReaderDataType === QuranReaderDataType.SelectedTafsir;
+const EndOfScrollingControls: React.FC<Props> = ({
+  quranReaderDataType,
+  lastVerse,
+  initialData,
+}) => {
+  const isReadingByRevelationOrder = useSelector(selectIsReadingByRevelationOrder);
+
   return (
-    <div className={styles.container}>
-      <div className={styles.buttonsContainer}>
-        {quranReaderDataType === QuranReaderDataType.Chapter && (
-          <ChapterControls lastVerse={lastVerse} />
-        )}
-        {(quranReaderDataType === QuranReaderDataType.Verse ||
-          quranReaderDataType === QuranReaderDataType.VerseRange) && (
-          <VerseControls lastVerse={lastVerse} />
-        )}
-        {quranReaderDataType === QuranReaderDataType.Page && <PageControls lastVerse={lastVerse} />}
-        {quranReaderDataType === QuranReaderDataType.Juz && <JuzControls lastVerse={lastVerse} />}
-        {(quranReaderDataType === QuranReaderDataType.Tafsir || isTafsirIdSetFromUrl) && (
-          <TafsirControls lastVerse={lastVerse} isTafsirIdSetFromUrl={isTafsirIdSetFromUrl} />
-        )}
+    <>
+      <div className={styles.progressWidgetContainer}>
+        <QuranReaderReadingStreak />
       </div>
-    </div>
+      <div className={styles.progressWidgetContainer}>
+        <HomepageFundraisingBanner isDismissible={false} />
+      </div>
+      {isReadingByRevelationOrder && quranReaderDataType === QuranReaderDataType.Chapter && (
+        <RevelationOrderNavigationNotice
+          view={RevelationOrderNavigationNoticeView.EndOfScrollingControls}
+        />
+      )}
+      <div className={styles.container}>
+        <div className={styles.buttonsContainer}>
+          {quranReaderDataType === QuranReaderDataType.Chapter && (
+            <ChapterControls initialData={initialData} />
+          )}
+          {(quranReaderDataType === QuranReaderDataType.Verse ||
+            quranReaderDataType === QuranReaderDataType.ChapterVerseRanges ||
+            quranReaderDataType === QuranReaderDataType.Ranges) && (
+            <VerseControls lastVerse={lastVerse} />
+          )}
+          {quranReaderDataType === QuranReaderDataType.Page && (
+            <PageControls lastVerse={lastVerse} />
+          )}
+          {quranReaderDataType === QuranReaderDataType.Juz && <JuzControls lastVerse={lastVerse} />}
+          {quranReaderDataType === QuranReaderDataType.Rub && <RubControls lastVerse={lastVerse} />}
+          {quranReaderDataType === QuranReaderDataType.Hizb && (
+            <HizbControls lastVerse={lastVerse} />
+          )}
+        </div>
+      </div>
+    </>
   );
 };
 

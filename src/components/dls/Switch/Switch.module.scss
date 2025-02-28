@@ -1,6 +1,6 @@
 $selectedItemShadow: 0px 0px 4px rgba(0, 0, 0, 0.1);
-
 $container-padding: calc(0.5 * var(--spacing-xxsmall));
+$separatorOpacity: 0.2;
 
 .container {
   position: relative;
@@ -17,11 +17,17 @@ $container-padding: calc(0.5 * var(--spacing-xxsmall));
   ); // use grid to prevent layout shift when `font-family: bold` on item selected https://css-tricks.com/bold-on-hover-without-the-layout-shift/
 }
 
+.xSmallContainer {
+  padding-block-start: 0;
+  padding-block-end: 0;
+  padding-inline-start: 0;
+  padding-inline-end: 0;
+}
+
 .item {
   cursor: pointer;
   color: var(--color-text-default);
   background-color: transparent;
-  border-radius: var(--border-radius-pill);
   border: none;
   z-index: 1;
 }
@@ -29,6 +35,23 @@ $container-padding: calc(0.5 * var(--spacing-xxsmall));
 .item[disabled] {
   cursor: not-allowed;
   opacity: var(--opacity-50);
+}
+
+.separatorLine {
+  position: absolute;
+  height: 100%;
+  width: 1px;
+}
+.separatorLineVisible {
+  &::before {
+    content: "";
+    position: absolute;
+    transform: translateY(75%);
+    width: 1px;
+    height: 40%;
+    border-inline-start: 1px solid var(--color-text-default);
+    opacity: $separatorOpacity;
+  }
 }
 
 $background-container: calc(0.8 * var(--spacing-xxsmall));
@@ -72,9 +95,16 @@ $background-container: calc(0.8 * var(--spacing-xxsmall));
 }
 
 .itemSmall {
-  font-size: var(--font-size-small);
+  font-size: var(--font-size-xsmall);
   padding-block-start: var(--spacing-xxsmall);
   padding-block-end: var(--spacing-xxsmall);
   padding-inline-start: var(--spacing-small);
   padding-inline-end: var(--spacing-small);
+}
+
+.itemXSmall {
+  padding-block-start: var(--spacing-micro);
+  padding-block-end: var(--spacing-micro);
+  padding-inline-start: var(--spacing-micro);
+  padding-inline-end: var(--spacing-micro);
 }

@@ -1,19 +1,17 @@
-import React from 'react';
+import React, { useContext } from 'react';
 
+import { useSelector as useXstateSelector } from '@xstate/react';
 import useTranslation from 'next-translate/useTranslation';
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
-import DownloadIcon from '../../../../public/icons/download.svg';
+import PopoverMenu from '@/dls/PopoverMenu/PopoverMenu';
+import Spinner, { SpinnerSize } from '@/dls/Spinner/Spinner';
+import DownloadIcon from '@/icons/download.svg';
+import { selectIsDownloadingAudio, setIsDownloadingAudio } from '@/redux/slices/AudioPlayer/state';
+import { logButtonClick } from '@/utils/eventLogger';
+import { AudioPlayerMachineContext } from 'src/xstate/AudioPlayerMachineContext';
 
-import PopoverMenu from 'src/components/dls/PopoverMenu/PopoverMenu';
-import Spinner, { SpinnerSize } from 'src/components/dls/Spinner/Spinner';
-import {
-  selectAudioData,
-  selectIsDownloadingAudio,
-  setIsDownloadingAudio,
-} from 'src/redux/slices/AudioPlayer/state';
-
-const download = (url: string, onDone: () => void) => {
+export const download = (url: string, onDone: () => void) => {
   const splits = url.substring(url.lastIndexOf('/') + 1).split('?');
   const [filename] = splits;
   const xhr = new XMLHttpRequest();
@@ -33,13 +31,15 @@ const download = (url: string, onDone: () => void) => {
 
 const DownloadAudioButton = () => {
   const { t } = useTranslation('common');
-  const audioData = useSelector(selectAudioData, shallowEqual);
+  const audioService = useContext(AudioPlayerMachineContext);
+  const audioDataUrl = useXstateSelector(audioService, (state) => state.context.audioData.audioUrl);
   const loading = useSelector(selectIsDownloadingAudio);
   const dispatch = useDispatch();
 
   const onClick = () => {
+    logButtonClick('audio_player_download');
     dispatch(setIsDownloadingAudio(true));
-    download(audioData.audioUrl, () => {
+    download(audioDataUrl, () => {
       dispatch(setIsDownloadingAudio(false));
     });
   };

@@ -24,6 +24,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/images/logo/Logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ],
   "shortcuts" : [
@@ -50,17 +56,6 @@
       "url": "/36",
       "description": "Read Surah Yaseen",
       "icons": [{ "src": "/images/logo/Logo@96x96.png", "sizes": "96x96" }]
-    }
-  ],
-  "related_applications": [
-    {
-      "platform": "play",
-      "url": "https://play.google.com/store/apps/details?id=com.quran.labs.androidquran",
-      "id": "com.quran.labs.androidquran"
-    },
-    {
-      "platform": "itunes",
-      "url": "https://apps.apple.com/us/app/quran-by-quran-com-qran/id1118663303"
     }
   ],
   "theme_color": "#FFFFFF",

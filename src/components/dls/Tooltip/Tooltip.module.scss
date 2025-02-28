@@ -1,8 +1,11 @@
 .trigger {
   all: unset;
+  display: inline-block;
 }
 
 .content {
+  z-index: var(--z-index-sticky);
+  font-size: var(--font-size-normal);
   border-radius: var(--border-radius-default);
   padding-block-start: var(--spacing-xxsmall);
   padding-block-end: var(--spacing-xxsmall);
@@ -11,7 +14,7 @@
   color: var(--color-text-inverse);
   background-color: var(--color-background-inverse);
   text-align: center;
-  max-width: calc(8 * var(--spacing-mega));
+  max-width: calc(10 * var(--spacing-mega));
   & > span {
     fill: var(--color-background-inverse);
   }

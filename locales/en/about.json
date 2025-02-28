@@ -1,18 +1,42 @@
 {
-    "credits": {
-        "desc": "This website was created by a few volunteers and was made possible with the will of Allah (Glory be unto Him) and with the help of the open source Muslim community online. Data sources include <0>Tanzil<\/0>, <1>QuranComplex<\/1>, <2>Collin Fair<\/2>'s work on audio segments, <3>QuranEnc<\/3>, <4>Zekr<\/4> and Online Quran Project.",
-        "lokalize": "Localization was made possible by the help of <0>Lokalise<\/0> which is a computer-aided translation system that focuses on productivity and quality assurance and provides a seamless localization workflow.",
-        "title": "Credits"
-    },
-    "main-desc": "The Noble Quran is the central religious text of Islam. Muslims believe the Qur’an is the book of Divine guidance and direction for mankind, and consider the original Arabic text the final revelation of Allah (God). All translations of the original Arabic text are thus interpretations of the original meanings and should be embraced as such.",
-    "meccan": {
-        "desc": "The Meccan suras are the chronologically earlier chapters (suras) of the Quran that were, according to Islamic tradition, revealed anytime before the migration of the Islamic prophet Muhammed and his followers from Mecca to Medina (Hijra). The Medinan suras are those revelations that occurred after the move to the city of that name.",
-        "surahs": "Meccan Surahs"
-    },
-    "median": {
-        "desc": "The Medinan suras or Medinan chapters of the Quran are the latest 24 suras that, according to Islamic tradition, were revealed at Medina after Muhammad&apos;s hijra from Mecca. These suras were revealed by Allah when the Muslim community was larger and more developed, as opposed to their minority position in Mecca.",
-        "surahs": "Medinan Surahs"
-    },
-    "questions": "If you have any questions, you may visit the <0>feedback<\/0> page.",
-    "redesign": "We have redesigned the website with a user friendly approach in mind. To browse through the surahs, click on the button (shown left) in the READ & LISTEN page and navigate surah by title or by page. In future iterations, we will be integrating more search and audio features inshaAllah. If you have any suggestions on how we can make the website a better experience please do not hesitate to <0>give us feedback<\/0>."
+  "credits": {
+    "desc": "We extend our gratitude to all those who have supported and contributed to this project, helping to make the Quran accessible to millions worldwide.",
+    "lokalize": "<0>Lokalize</0>: A computer-aided translation system that focuses on productivity and quality assurance and provides a seamless localization workflow.",
+    "quran-align": "<0>Collin Fair</0>: A tool for producing word-precise segmentation of recorded Qur'anic recitation.",
+    "quran-complex": "<0>QuranComplex</0>: King Fahd Glorious Qur'an Printing Complex is a leader in serving the Glorious Qur'an and its Sciences, translating its Meanings, and safeguarding the Qur'anic Text from distortion, through the optimal use of advanced technologies in the field of printing, audio recordings, electronic publishing and digital applications.",
+    "quran-enc": "<0>QuranEnc</0>: A portal featuring free and trustworthy translations of the meanings and exegeses of the noble Qur'an in many world languages.",
+    "tanzil": "<0>Tanzil</0>: An international Quranic project aimed at providing a highly-verified precise Quran text.",
+    "tarteel": "<0>Tarteel</0>: An AI-powered Quran memorization app. It's designed to help you memorize smarter, whether you're searching for a verse, tracking your progress, or following along with your recitation.",
+    "title": "Credits",
+    "vercel": "<0>Vercel</0>: is a deployment and collaboration platform for frontend developers which puts the frontend developer first, giving them comprehensive tools to build high-performance websites and applications.",
+    "zekr": "<0>Zekr</0>: An open platform Quran study tool for browsing and researching on the Quran"
+  },
+  "global-effort": {
+    "desc": "Millions of people from all over the world rely on Quran.com as their primary digital Quran resource. Whether they come to recite, reflect, memorize, or study, they share a common purpose: a sincere desire to connect with the words of Allah.\\nAs we continue to grow, we remain committed to ensuring that Quran.com remains a trusted, accessible, and beautifully designed space for anyone seeking to engage with the Quran.",
+    "title": "A Global Effort"
+  },
+  "key-features": {
+    "desc": "Quran.com is designed to support every stage of engagement with the Quran—from reading and memorization to study and reflection. Our features include:",
+    "features": [
+      "User-Friendly Quran Interface– A clean and intuitive reading experience on any device.",
+      "Multiple Translations & Tafsir – Access to translations in multiple languages, along with tafsir.",
+      "Audio Recitations – Listen to high-quality recitations from world-renowned Qaris, with the ability to follow along word by word.",
+      "Advanced Search & Navigation – Find verses instantly by topic or keywords across the entire Quran.",
+      "Ayah Bookmarking & Notes – Save verses and write personal reflections for later reference.",
+      "QuranReflect Integration – Engage with a global community through reflections and insights shared by scholars and individuals.",
+      "Reading Progress Tracking and Goals – Keep track of your daily goals and reading history",
+      "APIs for Developers – Free access to content and features to power Islamic apps and R&D.",
+      "And much more, Alhamdullilah."
+    ],
+    "title": "Key Features & Offerings"
+  },
+  "main-description": "Since its founding in 1995, Quran.com has been committed to making the Quran available to everyone in a way that is clear, authentic, and easy to engage with. Every day, millions of people worldwide turn to Quran.com to read, listen, study, and reflect on the Quran—whether they are lifelong students, scholars, or just beginning their journey.",
+  "our-mission": {
+    "desc": "The Quran is meant to be read, understood, and reflected upon. Our mission is to remove barriers to access and empower individuals and communities by providing a reliable, well-designed, and deeply enriching Quranic experience. We aim to serve as a trusted source for anyone seeking to engage with the Quran, guided by the principles of accuracy, clarity, and sincerity.",
+    "title": "Our Mission"
+  },
+  "who-we-are": {
+    "desc": "Quran.com is a waqf (endowment), established as a public trust to ensure that the Quran remains accessible to all, free of charge and without commercial interests. It is managed by Quran.Foundation, a 501(c)(3) nonprofit organization, which sustains and develops Quran.com as part of its mission to provide high-quality, authentic Quranic resources to the world. Our commitment is to serve the Quran and its readers with excellence, sincerity, and responsibility.",
+    "title": "Who We Are"
+  }
 }

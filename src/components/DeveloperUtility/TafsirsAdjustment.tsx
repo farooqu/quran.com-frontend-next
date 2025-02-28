@@ -7,9 +7,9 @@ import { useDispatch, useSelector } from 'react-redux';
 
 import styles from './TafsirsAdjustment.module.scss';
 
+import { selectSelectedTafsirs, setSelectedTafsirs } from '@/redux/slices/QuranReader/tafsirs';
+import { areArraysEqual } from '@/utils/array';
 import { getTafsirs } from 'src/api';
-import { selectSelectedTafsirs, setSelectedTafsirs } from 'src/redux/slices/QuranReader/tafsirs';
-import { areArraysEqual, numbersToStringsArray } from 'src/utils/array';
 import TafsirInfo from 'types/TafsirInfo';
 
 const TafsirsAdjustment = () => {
@@ -67,7 +67,7 @@ const TafsirsAdjustment = () => {
           multiple
           className={styles.select}
           onChange={onSelectedTafsirsChange}
-          defaultValue={numbersToStringsArray(selectedTafsirs)}
+          defaultValue={selectedTafsirs as string[]}
         >
           {tafsirs.map((tafsir) => (
             <option key={tafsir.id} value={tafsir.id}>

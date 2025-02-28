@@ -1,32 +1,71 @@
+/* eslint-disable max-lines */
 /* eslint-disable import/prefer-default-export */
 import findKey from 'lodash/findKey';
+import { MetaTag } from 'next-seo/lib/types';
+
+import i18nConfig from '../../i18n.json';
 
 import { getBasePath } from './url';
 
-import i18nConfig from 'i18n.json';
+import Language from '@/types/Language';
 
-const RTL_LOCALES = ['ar', 'fa', 'ur'];
+const RTL_LOCALES = [Language.AR, Language.FA, Language.UR];
 const LOCALE_NAME = {
-  en: 'English',
-  ar: 'العربية',
-  bn: 'বাংলা',
-  fa: 'فارسی',
-  fr: 'Français',
-  id: 'Indonesia',
-  it: 'Italiano',
-  nl: 'Dutch',
-  pt: 'Português',
-  ru: 'русский',
-  sq: 'Shqip',
-  th: 'ภาษาไทย',
-  tr: 'Türkçe',
-  ur: 'اردو',
-  zh: '简体中文',
-  ms: 'Melayu',
-  de: 'Deutsch',
-  inh: 'ʁəlʁɑj mot',
-  ta: 'தமிழ்', // tamil
-  hi: 'हिन्दी',
+  [Language.EN]: 'English',
+  [Language.AR]: 'العربية',
+  [Language.BN]: 'বাংলা',
+  [Language.FA]: 'فارسی',
+  [Language.FR]: 'Français',
+  [Language.ID]: 'Indonesia',
+  [Language.IT]: 'Italiano',
+  [Language.NL]: 'Dutch',
+  [Language.PT]: 'Português',
+  [Language.RU]: 'русский',
+  [Language.SQ]: 'Shqip',
+  [Language.TH]: 'ภาษาไทย',
+  [Language.TR]: 'Türkçe',
+  [Language.UR]: 'اردو',
+  [Language.ZH]: '简体中文',
+  [Language.MS]: 'Melayu',
+  [Language.DE]: 'Deutsch',
+  [Language.INH]: 'ʁəlʁɑj mot',
+  [Language.TA]: 'தமிழ்', // tamil
+  [Language.HI]: 'हिन्दी',
+  [Language.KU]: 'Kurdî',
+  [Language.UZ]: "o'zbek",
+  [Language.ES]: 'Español',
+  [Language.SW]: 'Kiswahili',
+};
+
+const LOCALE_NAME_TO_CODE = {
+  bengali: Language.BN,
+  english: Language.EN,
+  arabic: Language.AR,
+  russian: Language.RU,
+  urdu: Language.UR,
+  Kurdish: Language.KU,
+  swahili: Language.SW,
+};
+
+export const LANG_LOCALE_MAP = {
+  [Language.EN]: 'en-US',
+  [Language.AR]: 'ar-EG',
+  [Language.BN]: 'bn-BD',
+  [Language.FA]: 'fa-IR',
+  [Language.FR]: 'fr-FR',
+  [Language.ID]: 'id-ID',
+  [Language.IT]: 'it-IT',
+  [Language.NL]: 'nl-NL',
+  [Language.PT]: 'pt-BR',
+  [Language.RU]: 'ru-RU',
+  [Language.SQ]: 'sq-AL',
+  [Language.TH]: 'th-TH',
+  [Language.TR]: 'tr-TR',
+  [Language.UR]: 'ur-PK',
+  [Language.ZH]: 'zh-CN',
+  [Language.MS]: 'ms-MY',
+  [Language.ES]: 'es-ES',
+  [Language.SW]: 'sw-TZ',
 };
 
 export enum Direction {
@@ -38,81 +77,89 @@ export const Languages = {
   9: {
     // Arabic,
     dir: Direction.RTL,
-    locale: 'ar',
+    locale: Language.AR,
   },
   20: {
     // Bengali
-    locale: 'bn',
+    locale: Language.BN,
   },
   34: {
     font: 'divehi',
-    locale: 'dv',
+    locale: Language.DV,
     dir: Direction.RTL,
   },
   38: {
     // English
-    locale: 'en',
+    locale: Language.EN,
   },
   43: {
     // Persian/Farsi
     dir: Direction.RTL,
-    locale: 'fa',
+    locale: Language.FA,
   },
   49: {
     // French
-    locale: 'fr',
+    locale: Language.FR,
   },
   59: {
     // Hebrew
     dir: Direction.RTL,
-    locale: 'he',
+    locale: Language.HE,
   },
   67: {
     // Indonesian
-    locale: 'id',
+    locale: Language.ID,
   },
   74: {
     // Italian
-    locale: 'it',
+    locale: Language.IT,
   },
   89: {
     font: 'kurdish',
-    locale: 'ku',
+    locale: Language.KU,
     dir: Direction.RTL,
   },
   133: {
     // Portuguese
-    locale: 'pt',
+    locale: Language.PT,
   },
   118: {
     // Dutch
-    locale: 'nl',
+    locale: Language.NL,
   },
   138: {
     // Russian
-    locle: 'ru',
+    locale: Language.RU,
   },
   151: {
     // Albanian
-    locale: 'sq',
+    locale: Language.SQ,
   },
   161: {
     // Thai
-    locale: 'th',
+    locale: Language.TH,
   },
   172: {
     // Uyghur/Uighur
     dir: Direction.RTL,
-    locale: 'ug',
+    locale: Language.UY,
   },
   174: {
     font: 'urdu',
     dir: Direction.RTL,
-    locale: 'ur',
+    locale: Language.UR,
   },
   185: {
     // Chinese
-    locale: 'zh',
+    locale: Language.ZH,
+  },
+  40: {
+    // Spanish
+    locale: Language.ES,
+  },
+  157: {
+    // Swahili
+    locale: Language.SW,
   },
 };
 
@@ -124,6 +171,7 @@ interface LinkLanguageAlternate {
 interface LanguageData {
   direction: string;
   font: string;
+  code: string;
 }
 
 /**
@@ -136,7 +184,7 @@ interface LanguageData {
  * @returns {boolean}
  */
 export const shouldUseMinimalLayout = (lang: string): boolean => {
-  return lang === 'ar';
+  return lang === Language.AR || lang === Language.UR;
 };
 
 /**
@@ -145,7 +193,7 @@ export const shouldUseMinimalLayout = (lang: string): boolean => {
  * @param {string} locale
  * @returns {boolean}
  */
-export const isRTLLocale = (locale: string): boolean => RTL_LOCALES.includes(locale);
+export const isRTLLocale = (locale: string): boolean => RTL_LOCALES.includes(locale as Language);
 
 /**
  * Gir the dir of the element based on the locale.
@@ -163,9 +211,12 @@ export const getDir = (locale: string): Direction =>
  * @returns {LanguageData}
  */
 export const getLanguageDataById = (languageId: number): LanguageData => {
+  const lang = Languages[languageId];
+
   return {
-    font: getLanguageFontById(languageId),
-    direction: getLanguageDirectionById(languageId),
+    font: lang?.font,
+    direction: lang?.dir || Direction.LTR,
+    code: lang?.locale || Language.EN,
   };
 };
 
@@ -198,7 +249,7 @@ export const getLanguageFontById = (languageId: number): string => {
  * @param {string} locale
  * @returns {number} language id
  */
-export const findLanguageIdByLocale = (locale: string): number => {
+export const findLanguageIdByLocale = (locale: Language): number => {
   return Number(findKey(Languages, { locale }));
 };
 
@@ -231,3 +282,178 @@ export const getLanguageAlternates = (path: string): LinkLanguageAlternate[] => 
  * @returns {string}
  */
 export const getLocaleName = (locale: string): string => LOCALE_NAME[locale];
+
+/**
+ * Converts a locale name e.g. 'english' to its code e.g. 'en'.
+ *
+ * @param {string} fullName
+ * @returns {string}
+ */
+export const getLocaleNameByFullName = (fullName: string): string =>
+  LOCALE_NAME[LOCALE_NAME_TO_CODE[fullName]];
+
+/**
+ * Takes a number and returns a localized string based on the provided locale.
+ *
+ * @param {number} value
+ * @param {string} locale
+ * @param {boolean} showLeadingZero
+ * @param {Intl.NumberFormatOptions} options
+ * @returns {string}
+ */
+// Intl.NumberFormat is performance heavy so we are caching the formatter.
+const numberFormatters: Map<Intl.NumberFormatOptions | string, Intl.NumberFormat> = new Map();
+let currentLanguageLocale: string = null;
+
+export const toLocalizedNumber = (
+  value: number,
+  locale: string,
+  showLeadingZero = false,
+  options: Intl.NumberFormatOptions = undefined,
+) => {
+  // we do this because an empty object will result in a new formatter being created everytime since we don't have it's reference.
+  const formatterKey = options ?? 'DEFAULT_OPTIONS';
+
+  if (numberFormatters.has(formatterKey) && currentLanguageLocale === locale) {
+    return getFormattedNumber(numberFormatters.get(formatterKey), value, showLeadingZero);
+  }
+
+  currentLanguageLocale = locale;
+  const fullLocale = LANG_LOCALE_MAP[locale];
+
+  const newNumberFormatter = new Intl.NumberFormat(fullLocale, options);
+  numberFormatters.set(formatterKey, newNumberFormatter);
+  return getFormattedNumber(newNumberFormatter, value, showLeadingZero);
+};
+
+/**
+ * Get the formatted localized number. This either returns
+ * the original value or prepends a leading 0 to the beginning
+ * of the string if it's allowed and the value is below 10.
+ *
+ * @param {Intl.NumberFormat} formatter
+ * @param {number} value
+ * @param {boolean} showLeadingZero
+ * @returns {string}
+ */
+const getFormattedNumber = (
+  formatter: Intl.NumberFormat,
+  value: number,
+  showLeadingZero: boolean,
+): string => {
+  const formattedNumber = formatter.format(value);
+  if (!showLeadingZero || value >= 10) {
+    return formattedNumber;
+  }
+  return `${formatter.format(0)}${formattedNumber}`;
+};
+
+/**
+ * Get the full locale name with lang + country e.g. ar-SA or en-US.
+ *
+ * @param {string} locale
+ * @returns {string}
+ */
+export const getLangFullLocale = (locale: string): string => LANG_LOCALE_MAP[locale];
+
+/**
+ * Takes a date and returns a localized string based on the provided locale and options.
+ *
+ * @param {number} value
+ * @param {string} locale
+ * @param {Intl.DateTimeFormatOptions} options
+ * @returns {string}
+ */
+export const toLocalizedDate = (
+  value: number | Date,
+  locale: string,
+  options: Intl.DateTimeFormatOptions = {},
+): string => {
+  const fullLocale = LANG_LOCALE_MAP[locale];
+  return new Intl.DateTimeFormat(fullLocale, options).format(value);
+};
+
+/**
+ * Localize a string that contains 2 numbers with a splitter in between
+ * e.g. "2:55" or "2-5".
+ *
+ * @param {string} string
+ * @param {string} lang
+ * @param {string} splitter
+ * @returns  {string}
+ */
+export const localizeNumericalStringWithSplitter = (
+  string: string,
+  lang: string,
+  splitter = ':',
+): string =>
+  string
+    .split(splitter)
+    .map((value: string) => toLocalizedNumber(Number(value), lang))
+    .join(splitter);
+
+/**
+ * Get the localized value of the verse key.
+ *
+ * @param {string} verseKey
+ * @param {string} lang
+ * @returns {string}
+ */
+export const toLocalizedVerseKey = (verseKey: string, lang: string): string =>
+  localizeNumericalStringWithSplitter(verseKey, lang);
+
+/**
+ * Get the localized value of a range e.g. "1-20"
+ *
+ * @param {string} range
+ * @param {string} lang
+ * @returns {string}
+ */
+export const toLocalizedVersesRange = (range: string, lang: string): string =>
+  localizeNumericalStringWithSplitter(range, lang, '-');
+
+/**
+ * Generate the locale by mapping the current iso language to
+ * the format that Facebook accepts @see https://developers.facebook.com/docs/javascript/internationalization#locales .
+ * Since LANG_LOCALE_MAP has the following format LL-CC, we need to convert it into LL_CC
+ * be replacing "-" with "_".
+ *
+ * @param {string} currentLocale
+ * @returns {string}
+ */
+export const getOpenGraphLocale = (currentLocale: string): string =>
+  `${LANG_LOCALE_MAP[currentLocale]}`.replace('-', '_');
+
+/**
+ * Generate the alternate locales that the current content can be served in.
+ * When Facebook needs to render an object in one of the specified locales,
+ * it will make a request to the URL with the fb_locale URL parameter.
+ *
+ * @see https://developers.facebook.com/blog/post/2013/11/11/605/
+ *
+ * @param {string} currentLocale
+ * @returns {MetaTag[]}
+ */
+export const getOpenGraphAlternateLocales = (currentLocale: string): MetaTag[] => {
+  return Object.keys(LANG_LOCALE_MAP)
+    .filter((languageCode) => languageCode !== currentLocale)
+    .map((languageCode) => ({
+      name: 'og:locale:alternate',
+      content: `${LANG_LOCALE_MAP[languageCode]}`.replace('-', '_'),
+    }));
+};
+
+/**
+ * Convert a month number to the corresponding localized month name.
+ *
+ * @param {number} monthNumber
+ * @param {string} locale
+ * @returns {string}
+ */
+export const toLocalizedMonthName = (monthNumber: number, locale: string): string => {
+  const objDate = new Date();
+  objDate.setDate(1);
+  objDate.setMonth(monthNumber - 1);
+
+  return objDate.toLocaleString(locale, { month: 'long' });
+};

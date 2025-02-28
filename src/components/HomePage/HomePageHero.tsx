@@ -1,27 +1,37 @@
-import Image from 'next/image';
+import Head from 'next/head';
+import useTranslation from 'next-translate/useTranslation';
 
-import quranKarimLogo from '../../../public/images/quran-karim-logo.png';
-
+import NavigationButton from './HeroButtons/NavigationButton';
+import PopularButton from './HeroButtons/PopularButton';
 import styles from './HomePageHero.module.scss';
-import PrayerTimes from './PrayerTimes/PrayerTimes';
-import QuickLinks from './QuickLinks';
 
-import CommandBarTrigger from 'src/components/CommandBar/CommandBarTrigger';
+import SearchInput from '@/components/Search/SearchInput';
+import Background from '@/icons/background.svg';
+import Logo from '@/icons/logo_main.svg';
 
 const HomePageHero = () => {
+  const { t } = useTranslation('common');
   return (
     <div className={styles.outerContainer}>
-      <div className={styles.backgroundImage} />
-      <div data-theme="light">
-        <PrayerTimes />
+      <Head>
+        <link rel="preload" as="image" href="/images/background.png" />
+      </Head>
+      <div className={styles.backgroundImage}>
+        <Background />
+      </div>
+      <div>
         <div className={styles.innerContainer}>
-          <div className={styles.imageContainer}>
-            <Image className={styles.homepageImage} src={quranKarimLogo} priority />
+          <div className={styles.logoContainer}>
+            <Logo />
           </div>
-
-          <CommandBarTrigger />
-          <div className={styles.quickLinksContainer}>
-            <QuickLinks />
+          <SearchInput
+            placeholder={t('command-bar.placeholder')}
+            shouldExpandOnClick
+            shouldOpenDrawerOnMobile
+          />
+          <div className={styles.buttonsContainer}>
+            <NavigationButton />
+            <PopularButton />
           </div>
         </div>
       </div>

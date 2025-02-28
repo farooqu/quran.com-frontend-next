@@ -4,7 +4,7 @@ import useTranslation from 'next-translate/useTranslation';
 
 import styles from './Filter.module.scss';
 
-import Combobox from 'src/components/dls/Forms/Combobox';
+import Combobox from '@/dls/Forms/Combobox';
 import AvailableLanguage from 'types/AvailableLanguage';
 
 interface Props {
@@ -39,14 +39,12 @@ const LanguagesFilter: React.FC<Props> = memo(
     return (
       <div className={styles.comboboxItems}>
         <Combobox
-          fixedWidth={false}
           isMultiSelect
           id="languagesFilter"
           value={matchedLanguages}
           items={languagesItems}
           onChange={onLanguageChange}
           placeholder={t('language-select')}
-          label={<div className={styles.dropdownLabel}>{t('language-filter-label')}</div>}
         />
       </div>
     );

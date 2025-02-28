@@ -1,208 +1,171 @@
 /* eslint-disable max-lines */
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { GetStaticProps, NextPage } from 'next';
-import useTranslation from 'next-translate/useTranslation';
 import { useRouter } from 'next/router';
+import useTranslation from 'next-translate/useTranslation';
 import { useSelector } from 'react-redux';
-
-import IconSearch from '../../public/icons/search.svg';
 
 import styles from './search.module.scss';
 
-import { getAvailableLanguages, getAvailableTranslations, getSearchResults } from 'src/api';
-import Input from 'src/components/dls/Forms/Input';
-import NextSeoWrapper from 'src/components/NextSeoWrapper';
-import LanguagesFilter from 'src/components/Search/Filters/LanguagesFilter';
-import TranslationsFilter from 'src/components/Search/Filters/TranslationsFilter';
-import SearchBodyContainer from 'src/components/Search/SearchBodyContainer';
-import useAddQueryParamsToUrl from 'src/hooks/useAddQueryParamsToUrl';
-import useDebounce from 'src/hooks/useDebounce';
-import { selectSelectedTranslations } from 'src/redux/slices/QuranReader/translations';
-import { areArraysEqual } from 'src/utils/array';
-import { SearchResponse } from 'types/ApiResponses';
+import { getAvailableLanguages, getNewSearchResults } from '@/api';
+import DataFetcher from '@/components/DataFetcher';
+import NextSeoWrapper from '@/components/NextSeoWrapper';
+import SearchBodyContainer from '@/components/Search/SearchBodyContainer';
+import SearchInput from '@/components/Search/SearchInput';
+import useAddQueryParamsToUrl from '@/hooks/useAddQueryParamsToUrl';
+import { selectSelectedTranslations } from '@/redux/slices/QuranReader/translations';
+import QueryParam from '@/types/QueryParam';
+import SearchResponse from '@/types/Search/SearchResponse';
+import SearchService from '@/types/Search/SearchService';
+import SearchQuerySource from '@/types/SearchQuerySource';
+import { makeNewSearchResultsUrl } from '@/utils/apiPaths';
+import { areArraysEqual } from '@/utils/array';
+import { getAllChaptersData } from '@/utils/chapter';
+import {
+  logEvent,
+  logTextSearchQuery,
+  logSearchResults,
+  logEmptySearchResults,
+} from '@/utils/eventLogger';
+import { getLanguageAlternates } from '@/utils/locale';
+import { getCanonicalUrl } from '@/utils/navigation';
+import { getAdvancedSearchQuery } from '@/utils/search';
 import AvailableLanguage from 'types/AvailableLanguage';
-import AvailableTranslation from 'types/AvailableTranslation';
+import ChaptersData from 'types/ChaptersData';
 
 const PAGE_SIZE = 10;
-const DEBOUNCING_PERIOD_MS = 1000;
 
-type SearchProps = {
+type SearchPageProps = {
   languages: AvailableLanguage[];
-  translations: AvailableTranslation[];
+  chaptersData: ChaptersData;
 };
 
-const Search: NextPage<SearchProps> = ({ languages, translations }) => {
-  const { t } = useTranslation('common');
+const navigationUrl = '/search';
+const source = SearchQuerySource.SearchPage;
+
+const SearchPage: NextPage<SearchPageProps> = (): JSX.Element => {
+  const { t, lang } = useTranslation('common');
+  const selectedTranslations = useSelector(selectSelectedTranslations, areArraysEqual) as string[];
   const router = useRouter();
-  const userTranslations = useSelector(selectSelectedTranslations, areArraysEqual);
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedLanguages, setSelectedLanguages] = useState<string>('');
-  const [selectedTranslations, setSelectedTranslations] = useState<string>(() =>
-    userTranslations.join(','),
-  );
-  const [isSearching, setIsSearching] = useState(false);
-  const [hasError, setHasError] = useState(false);
-  const [searchResult, setSearchResult] = useState<SearchResponse>(null);
-  // Debounce search query to avoid having to call the API on every type. The API will be called once the user stops typing.
-  const debouncedSearchQuery = useDebounce<string>(searchQuery, DEBOUNCING_PERIOD_MS);
-  // the query params that we want added to the url
-  const queryParams = useMemo(
-    () => ({
-      page: currentPage,
-      languages: selectedLanguages,
-      query: debouncedSearchQuery,
-      translations: selectedTranslations,
-    }),
-    [currentPage, debouncedSearchQuery, selectedLanguages, selectedTranslations],
-  );
-  useAddQueryParamsToUrl('/search', queryParams);
-
-  // We need this since pages that are statically optimized will be hydrated
-  // without their route parameters provided, i.e query will be an empty object ({}).
-  // After hydration, Next.js will trigger an update to provide the route parameters
-  // in the query object. @see https://nextjs.org/docs/routing/dynamic-routes#caveats
-  useEffect(() => {
-    if (router.isReady) {
-      if (router.query.query) {
-        setSearchQuery(router.query.query as string);
-      }
-      if (router.query.page) {
-        setCurrentPage(Number(router.query.page));
-      }
-      if (router.query.languages) {
-        setSelectedLanguages(router.query.languages as string);
-      }
-      if (router.query.translations) {
-        setSelectedTranslations(router.query.translations as string);
-      }
+  const [searchQuery, setSearchQuery] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(QueryParam.QUERY) || params.get(QueryParam.QUERY_OLD) || '';
     }
-  }, [router]);
-
-  /**
-   * Handle when the search query is changed.
-   *
-   * @param {string} newSearchQuery
-   * @returns {void}
-   */
-  const onSearchQueryChange = (newSearchQuery: string): void => {
-    setSearchQuery(newSearchQuery || '');
-  };
-
-  const onClearClicked = () => {
-    setSearchQuery('');
-  };
-
-  /**
-   * Call BE to fetch the results using the passed filters.
-   *
-   * @param {string} query
-   * @param {number} page
-   * @param {string} translation
-   * @param {string} language
-   */
-  const getResults = useCallback(
-    (query: string, page: number, translation: string, language: string) => {
-      setIsSearching(true);
-      getSearchResults({
-        query,
-        filterLanguages: language,
-        size: PAGE_SIZE,
-        page,
-        ...(translation && { filterTranslations: translation }), // translations will be included only when there is a selected translation
-      })
-        .then((response) => {
-          if (response.status === 500) {
-            setHasError(true);
-          } else {
-            setSearchResult(response);
-          }
-        })
-        .catch(() => {
-          setHasError(true);
-        })
-        .finally(() => {
-          setIsSearching(false);
-        });
-    },
-    [],
-  );
-
-  // listen to any changes in the API params and call BE on change.
-  useEffect(() => {
-    // only when the search query has a value we call the API.
-    if (debouncedSearchQuery) {
-      getResults(debouncedSearchQuery, currentPage, selectedTranslations, selectedLanguages);
+    return '';
+  });
+  const [currentPage, setCurrentPage] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return Number(params.get(QueryParam.PAGE)) || 1;
     }
-  }, [currentPage, debouncedSearchQuery, getResults, selectedLanguages, selectedTranslations]);
+    return 1;
+  });
+
+  // Handle URL changes (both initial load and navigation)
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    const query = router.query[QueryParam.QUERY] || router.query[QueryParam.QUERY_OLD];
+    const page = Number(router.query[QueryParam.PAGE]) || 1;
+
+    if (query) {
+      setSearchQuery(query as string);
+      setCurrentPage(page);
+    }
+  }, [router.isReady, router.query]);
 
   const onPageChange = (page: number) => {
+    logEvent('search_page_number_change', { page });
     setCurrentPage(page);
   };
 
-  /**
-   * Handle when the selected language changes.
-   *
-   * @param {string} languageIsoCode
-   */
-  const onLanguageChange = useCallback((languageIsoCodes: string[]) => {
-    // convert the array into a string
-    setSelectedLanguages(languageIsoCodes.join(','));
-  }, []);
+  const queryParams = useMemo(
+    () => ({
+      [QueryParam.PAGE]: currentPage,
+      [QueryParam.QUERY]: searchQuery || undefined,
+    }),
+    [currentPage, searchQuery],
+  );
+  useAddQueryParamsToUrl(navigationUrl, queryParams);
 
-  const onTranslationChange = useCallback((translationIds: string[]) => {
-    // convert the array into a string
-    setSelectedTranslations(translationIds.join(','));
-    // reset the current page since most probable the results will change.
-    setCurrentPage(1);
-  }, []);
+  const REQUEST_PARAMS = getAdvancedSearchQuery(
+    searchQuery,
+    currentPage,
+    PAGE_SIZE,
+    selectedTranslations,
+  );
+  const fetcher = async () => {
+    logTextSearchQuery(REQUEST_PARAMS.query, source);
 
-  const onSearchKeywordClicked = useCallback((keyword: string) => {
-    setSearchQuery(keyword);
-  }, []);
+    try {
+      const response = await getNewSearchResults(REQUEST_PARAMS);
+      const finalResponse = {
+        ...response,
+        service: SearchService.KALIMAT,
+      };
+
+      if (response.pagination.totalRecords === 0) {
+        logEmptySearchResults({
+          query: searchQuery,
+          source,
+          service: SearchService.KALIMAT,
+        });
+      } else {
+        logSearchResults({
+          query: searchQuery,
+          source,
+          service: SearchService.KALIMAT,
+        });
+      }
+
+      return finalResponse;
+    } catch (error) {
+      throw new Error('Search failed');
+    }
+  };
 
   return (
     <>
-      <NextSeoWrapper title={debouncedSearchQuery} />
+      <NextSeoWrapper
+        title={
+          searchQuery !== ''
+            ? t('search:search-title', {
+                searchQuery,
+              })
+            : t('search:search')
+        }
+        description={t('search:search-desc')}
+        canonical={getCanonicalUrl(lang, navigationUrl)}
+        languageAlternates={getLanguageAlternates(navigationUrl)}
+      />
       <div className={styles.pageContainer}>
-        <p className={styles.header}>{t('search.title')}</p>
-        <Input
-          id="searchQuery"
-          prefix={<IconSearch />}
-          onChange={onSearchQueryChange}
-          onClearClicked={onClearClicked}
-          clearable
-          value={searchQuery}
-          disabled={isSearching}
-          placeholder={t('search.title')}
-          fixedWidth={false}
-        />
-        <p className={styles.filtersHeader}>{t('search.filters')}</p>
-        <div className={styles.filtersContainer}>
-          <LanguagesFilter
-            languages={languages}
-            selectedLanguages={selectedLanguages}
-            onLanguageChange={onLanguageChange}
-          />
-          <TranslationsFilter
-            translations={translations}
-            selectedTranslations={selectedTranslations}
-            onTranslationChange={onTranslationChange}
-          />
+        <div className={styles.searchInputContainer}>
+          <SearchInput initialSearchQuery={searchQuery} placeholder={t('search.title')} />
         </div>
         <div className={styles.pageBody}>
-          <SearchBodyContainer
-            onSearchKeywordClicked={onSearchKeywordClicked}
-            isSearchDrawer={false}
-            searchQuery={debouncedSearchQuery}
-            searchResult={searchResult}
-            currentPage={currentPage}
-            onPageChange={onPageChange}
-            pageSize={PAGE_SIZE}
-            isSearching={isSearching}
-            hasError={hasError}
-          />
+          <div className={styles.searchBodyContainer}>
+            <DataFetcher
+              queryKey={searchQuery ? makeNewSearchResultsUrl(REQUEST_PARAMS) : null}
+              render={(searchResult) => {
+                return (
+                  <SearchBodyContainer
+                    onSearchKeywordClicked={setSearchQuery}
+                    source={source}
+                    searchQuery={searchQuery}
+                    searchResult={searchResult as SearchResponse}
+                    currentPage={currentPage}
+                    onPageChange={onPageChange}
+                    pageSize={PAGE_SIZE}
+                    isSearching={false}
+                    hasError={false}
+                  />
+                );
+              }}
+              fetcher={fetcher}
+            />
+          </div>
         </div>
       </div>
     </>
@@ -210,28 +173,29 @@ const Search: NextPage<SearchProps> = ({ languages, translations }) => {
 };
 
 export const getStaticProps: GetStaticProps = async ({ locale }) => {
-  const [availableLanguagesResponse, availableTranslationsResponse] = await Promise.all([
-    getAvailableLanguages(locale),
-    getAvailableTranslations(locale),
-  ]);
+  try {
+    const availableLanguagesResponse = await getAvailableLanguages(locale);
 
-  let translations = [];
-  let languages = [];
-  if (availableLanguagesResponse.status !== 500) {
-    const { languages: responseLanguages } = availableLanguagesResponse;
-    languages = responseLanguages;
-  }
-  if (availableTranslationsResponse.status !== 500) {
-    const { translations: responseTranslations } = availableTranslationsResponse;
-    translations = responseTranslations;
-  }
+    let languages = [];
+    if (availableLanguagesResponse.status !== 500) {
+      const { languages: responseLanguages } = availableLanguagesResponse;
+      languages = responseLanguages;
+    }
+    const chaptersData = await getAllChaptersData(locale);
 
-  return {
-    props: {
-      languages,
-      translations,
-    },
-  };
+    return {
+      props: {
+        chaptersData,
+        languages,
+      },
+    };
+  } catch (e) {
+    return {
+      props: {
+        hasError: true,
+      },
+    };
+  }
 };
 
-export default Search;
+export default SearchPage;

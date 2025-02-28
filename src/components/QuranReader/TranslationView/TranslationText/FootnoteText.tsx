@@ -5,17 +5,18 @@ import React, { MouseEvent } from 'react';
 import classNames from 'classnames';
 import useTranslation from 'next-translate/useTranslation';
 
-import CloseIcon from '../../../../../public/icons/close.svg';
-
 import styles from './FootnoteText.module.scss';
 import transStyles from './TranslationText.module.scss';
 
-import Button, { ButtonSize, ButtonShape, ButtonType } from 'src/components/dls/Button/Button';
-import Spinner from 'src/components/dls/Spinner/Spinner';
-import { getLanguageDataById, findLanguageIdByLocale } from 'src/utils/locale';
+import Button, { ButtonSize, ButtonShape, ButtonVariant } from '@/dls/Button/Button';
+import Spinner from '@/dls/Spinner/Spinner';
+import CloseIcon from '@/icons/close.svg';
+import Language from '@/types/Language';
+import { getLanguageDataById, findLanguageIdByLocale } from '@/utils/locale';
 import Footnote from 'types/Footnote';
 
 interface FootnoteTextProps {
+  footnoteName?: string; // can be a number or a string (e.g. "sg" or "pl")
   footnote: Footnote;
   onCloseClicked: () => void;
   onTextClicked?: (event: MouseEvent, isSubFootnote?: boolean) => void;
@@ -23,6 +24,7 @@ interface FootnoteTextProps {
 }
 
 const FootnoteText: React.FC<FootnoteTextProps> = ({
+  footnoteName,
   footnote,
   onCloseClicked,
   onTextClicked,
@@ -30,17 +32,19 @@ const FootnoteText: React.FC<FootnoteTextProps> = ({
 }) => {
   const { t, lang } = useTranslation('quran-reader');
 
-  const languageId = footnote?.languageId || findLanguageIdByLocale(lang);
+  const languageId = footnote?.languageId || findLanguageIdByLocale(lang as Language);
   const landData = getLanguageDataById(languageId);
 
   return (
     <div className={styles.footnoteContainer}>
       <div className={styles.header}>
-        <p>{t('footnote')}</p>
+        <p>
+          {t('footnote')} {footnoteName ? `- ${footnoteName}` : null}
+        </p>
         <Button
           size={ButtonSize.Small}
+          variant={ButtonVariant.Ghost}
           shape={ButtonShape.Circle}
-          type={ButtonType.Secondary}
           onClick={onCloseClicked}
         >
           <CloseIcon />

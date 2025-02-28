@@ -1,10 +1,12 @@
 import storage from 'redux-persist/lib/storage';
 
+import SliceName from '@/redux/types/SliceName';
+
 const commandBarPersistConfig = {
-  key: 'commandBar',
+  key: SliceName.COMMAND_BAR,
   storage,
   version: 1,
-  blacklist: ['isOpen'],
+  blacklist: ['isExpanded'],
 };
 
 export default commandBarPersistConfig;

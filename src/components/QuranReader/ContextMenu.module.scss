@@ -1,16 +1,23 @@
 @use "src/styles/constants";
 @use "src/styles/breakpoints";
 
+$sections-container-height: 2.25rem;
+$pixel: 1px;
+
 .container {
-  background: var(--color-background-alternative-medium);
+  background: var(--color-background-default);
+  background: var(--color-background-elevated);
+  box-shadow: var(--shadow-small);
   color: var(--color-text-default);
   text-align: center;
   position: fixed;
   z-index: var(--z-index-sticky);
-  transition: var(--transition-regular);
+  transition: transform var(--transition-regular);
   width: 100%;
-  inset-block-start: 0;
+  inset-block-start: calc($pixel * -1);
+  padding-bottom: $pixel;
   min-height: var(--spacing-medium);
+  will-change: transform;
   &:after {
     display: block;
     content: "";
@@ -19,7 +26,6 @@
     transition-timing-function: linear;
     height: var(--spacing-micro);
     background: var(--color-success-deep);
-    position: absolute;
     inset-block-end: calc(-1 * var(--spacing-micro));
   }
 }
@@ -31,7 +37,12 @@
 }
 
 .visibleContainer {
-  inset-block-start: constants.$navbar-height;
+  transform: translate3d(0, var(--navbar-container-height), 0);
+  // https://ptgamr.github.io/2014-09-13-translate3d-vs-translate-performance/
+}
+
+.withVisibleBanner {
+  transform: translate3d(0, var(--navbar-container-height) 0);
 }
 
 .expandedContainer {
@@ -55,23 +66,32 @@
 }
 
 .sectionsContainer {
+  height: $sections-container-height;
   width: 100%;
   padding-block-start: var(--spacing-micro);
   padding-block-end: var(--spacing-micro);
-  padding-inline-start: var(--spacing-micro);
-  padding-inline-end: var(--spacing-micro);
   display: flex;
   align-items: center;
+  box-sizing: border-box;
+  padding-inline: calc(1.3 * var(--spacing-large));
+  z-index: var(--z-index-default);
+  position: relative;
+  background: var(--color-background-default);
+  background: var(--color-background-elevated);
+  @include breakpoints.tablet {
+    padding-inline: calc(1.2 * var(--spacing-mega));
+  }
+}
+
+.halfSection {
+  width: 50%; // when reading preference toggle is hidden
 }
 
 .section {
-  width: 50%;
-  display: flex;
-  align-items: center;
-}
-
-.leftSection {
-  margin-inline-end: var(--spacing-mega);
+  width: calc(100% / 3);
+  @include breakpoints.smallerThanTablet {
+    width: 50%;
+  }
 }
 
 .alignStart {
@@ -87,4 +107,45 @@
   justify-content: space-between;
   flex-direction: column;
   width: 100%;
+}
+
+.primaryInfo {
+  font-weight: var(--font-weight-semibold);
+}
+.secondaryInfo {
+  font-weight: lighter;
+}
+
+.surahName {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+.chevronIconContainer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-inline-start: var(--spacing-xxsmall);
+  box-sizing: border-box;
+}
+
+.rotate180 {
+  transition: var(--transition-fast);
+  transform: rotate(180deg);
+}
+
+.rotateAuto {
+  transition: var(--transition-fast);
+  transform: rotate(0);
+  @include breakpoints.tablet {
+    transition: var(--transition-fast);
+    transform: rotate(180deg);
+  }
+}
+
+.disabledOnMobile {
+  pointer-events: none;
+  @include breakpoints.tablet {
+    pointer-events: inherit;
+  }
 }

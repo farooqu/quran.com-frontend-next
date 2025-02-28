@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unknown-property */
 /* eslint-disable max-lines */
 /* eslint-disable jsx-a11y/role-has-required-aria-props */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -27,8 +28,8 @@ import Tag from './Tag';
 import ComboboxSize from './types/ComboboxSize';
 import { InitialValue, Value, MultiSelectValue, InitialSelectedItems } from './types/Values';
 
-import useFocus from 'src/hooks/useFocusElement';
-import useOutsideClickDetector from 'src/hooks/useOutsideClickDetector';
+import useFocus from '@/hooks/useFocusElement';
+import useOutsideClickDetector from '@/hooks/useOutsideClickDetector';
 
 interface Props {
   id: string;
@@ -81,11 +82,42 @@ const Combobox: React.FC<Props> = ({
   const [filteredItems, setFilteredItems] = useState<DropdownItem[]>(items);
   const [focusInput, inputRef]: [() => void, RefObject<HTMLInputElement>] = useFocus();
   const comboBoxRef = useRef(null);
+
+  const getNewValue = useCallback(
+    (isNewValueValid: boolean, previousValue, newValue) => {
+      if (!isNewValueValid) {
+        // reset the filter in-case the prev data is outside the filtered items
+        setInputValue(initialInputValue || '');
+        return previousValue;
+      }
+      return newValue;
+    },
+    [initialInputValue],
+  );
+
+  // instead of running items.find in the closeCombobox function, we can create a map to memoize the result
+  const valueToLabelMap = useMemo(() => {
+    const map: Record<string, string> = {};
+
+    items.forEach((item) => {
+      map[item.value] = item.label;
+    });
+
+    return map;
+  }, [items]);
+
   const closeCombobox = useCallback(() => {
+    if (!isMultiSelect) {
+      const currentValue = selectedValue as string;
+      setInputValue(valueToLabelMap[currentValue] ?? currentValue);
+    } else {
+      setInputValue('');
+    }
     setIsOpened(false);
-  }, []);
+  }, [isMultiSelect, selectedValue, valueToLabelMap]);
+
   useOutsideClickDetector(comboBoxRef, closeCombobox, isOpened);
-  useHotkeys('Escape', closeCombobox, { enabled: isOpened, enableOnTags: ['INPUT'] });
+  useHotkeys('Escape', closeCombobox, { enabled: isOpened, enableOnFormTags: ['INPUT'] });
 
   // if there are any changes in the items, we should update the filteredItems.
   // this is necessary when the parent items are have initial empty value and
@@ -95,6 +127,19 @@ const Combobox: React.FC<Props> = ({
   useEffect(() => {
     setFilteredItems(items);
   }, [items]);
+
+  // filter items when the search query changes
+  useEffect(() => {
+    // if the search query is empty it means it has been cleared so we set the original items back.
+    setFilteredItems(
+      !inputValue
+        ? items
+        : items.filter((item) =>
+            // we convert the search query and the item's label to lowercase first then check if the label contains a part/all of the search query.
+            item.label.toLowerCase().includes(inputValue.toLowerCase()),
+          ),
+    );
+  }, [inputValue, items]);
 
   // if there are any changes in the value, we should update the selectedValue.
   useEffect(() => {
@@ -141,8 +186,18 @@ const Combobox: React.FC<Props> = ({
   const invokeOnChangeCallback = useCallback(
     (newValue) => {
       if (onChange) {
-        onChange(isMultiSelect ? Object.keys(newValue) : (newValue as string), id);
+        const isNewValueValid = onChange(
+          isMultiSelect ? Object.keys(newValue) : (newValue as string),
+          id,
+        );
+        // if the parent component doesn't return a boolean value, we should allow the value to go through since it means no validation is needed.
+        if (typeof isNewValueValid !== 'boolean') {
+          return true;
+        }
+        return !!isNewValueValid;
       }
+      // if no on change callback, then no need to validate the value and we should allow it to go through.
+      return true;
     },
     [id, isMultiSelect, onChange],
   );
@@ -159,18 +214,18 @@ const Combobox: React.FC<Props> = ({
   useHotkeys(
     'Backspace',
     () => {
-      setSelectedValue((prevSelectedValue: MultiSelectValue) => {
-        const newSelectedValues = { ...prevSelectedValue };
+      setSelectedValue((prevSelectedValues: MultiSelectValue) => {
+        const newSelectedValues = { ...prevSelectedValues };
         const lastTag = Object.keys(newSelectedValues).pop();
         delete newSelectedValues[lastTag];
-        invokeOnChangeCallback(newSelectedValues);
-        return newSelectedValues;
+        const isNewValueValid = invokeOnChangeCallback(newSelectedValues);
+        return getNewValue(isNewValueValid, prevSelectedValues, newSelectedValues);
       });
     },
     {
       enabled:
         isOpened && isMultiSelect && !inputValue && !!tags.length && !preventUnselectingItems,
-      enableOnTags: ['INPUT'],
+      enableOnFormTags: ['INPUT'],
     },
     [invokeOnChangeCallback],
   );
@@ -208,23 +263,22 @@ const Combobox: React.FC<Props> = ({
             } else {
               newSelectedValues[selectedItemName] = true;
             }
-            invokeOnChangeCallback(newSelectedValues);
-            return newSelectedValues;
+            const isNewValueValid = invokeOnChangeCallback(newSelectedValues);
+            return getNewValue(isNewValueValid, prevSelectedValues, newSelectedValues);
           });
         }
         setInputValue(''); // reset the input value even if it's selecting.
-        setFilteredItems(items); // reset the filtered items.
       } else if (shouldProcessChange) {
         setInputValue(isUnSelect ? '' : itemLabel);
-        setSelectedValue(() => {
+        setSelectedValue((prevSelectedValue) => {
           const newSelectedValue = isUnSelect ? '' : selectedItemName;
-          invokeOnChangeCallback(newSelectedValue);
-          return newSelectedValue;
+          const isNewValueValid = invokeOnChangeCallback(newSelectedValue);
+          return getNewValue(isNewValueValid, prevSelectedValue, newSelectedValue);
         });
       }
       setIsOpened(false); // close the items container
     },
-    [preventUnselectingItems, invokeOnChangeCallback, isMultiSelect, items],
+    [preventUnselectingItems, isMultiSelect, invokeOnChangeCallback, getNewValue],
   );
 
   /**
@@ -235,15 +289,6 @@ const Combobox: React.FC<Props> = ({
    */
   const onInputValueChange = (event: React.FormEvent<HTMLInputElement>): void => {
     const newInputValue = event.currentTarget.value;
-    // if the search query is empty it means it has been cleared so we set the original items back.
-    setFilteredItems(
-      newInputValue === ''
-        ? items
-        : items.filter((item) =>
-            // we convert the search query and the item's label to lowercase first then check if the label contains a part/all of the search query.
-            item.label.toLowerCase().includes(newInputValue.toLowerCase()),
-          ),
-    );
     setInputValue(newInputValue);
     setIsOpened(true);
   };
@@ -262,20 +307,19 @@ const Combobox: React.FC<Props> = ({
 
       1. it's multiSelect.
       2. has minimum required items set.
-      This is done to avoid clearing all items while the minimum amount of items 
-      that should be selected is set. 
+      This is done to avoid clearing all items while the minimum amount of items
+      that should be selected is set.
     */
     if (!(hasMinimumRequiredItems && isMultiSelect)) {
       setInputValue('');
       // if it's allowed to un-select items.
       if (!preventUnselectingItems) {
-        setSelectedValue(() => {
+        setSelectedValue((prevSelectedValue) => {
           const defaultSelectedValue = getDefaultValue(isMultiSelect);
-          invokeOnChangeCallback(defaultSelectedValue);
-          return defaultSelectedValue;
+          const isNewValueValid = invokeOnChangeCallback(defaultSelectedValue);
+          return getNewValue(isNewValueValid, prevSelectedValue, defaultSelectedValue);
         });
       }
-      setFilteredItems(items);
     }
   };
 
@@ -294,12 +338,12 @@ const Combobox: React.FC<Props> = ({
         setSelectedValue((prevSelectedValues: MultiSelectValue) => {
           const newSelectedValues = { ...prevSelectedValues };
           delete newSelectedValues[toBeRemovedTag.name];
-          invokeOnChangeCallback(newSelectedValues);
-          return newSelectedValues;
+          const isNewValueValid = invokeOnChangeCallback(newSelectedValues);
+          return getNewValue(isNewValueValid, prevSelectedValues, newSelectedValues);
         });
       }
     },
-    [invokeOnChangeCallback, items, preventUnselectingItems],
+    [getNewValue, invokeOnChangeCallback, items, preventUnselectingItems],
   );
 
   const shouldShowCaret =

@@ -1,17 +1,34 @@
 import React from 'react';
 
-import Button, { ButtonSize, ButtonType } from 'src/components/dls/Button/Button';
-import { getVerseNavigationUrl } from 'src/utils/navigation';
+import useTranslation from 'next-translate/useTranslation';
+
+import styles from './VerseLink.module.scss';
+
+import Button, { ButtonShape, ButtonSize, ButtonVariant } from '@/dls/Button/Button';
+import { logButtonClick } from '@/utils/eventLogger';
+import { toLocalizedVerseKey } from '@/utils/locale';
+import { getChapterWithStartingVerseUrl } from '@/utils/navigation';
 
 interface Props {
   verseKey: string;
 }
 
 const VerseLink: React.FC<Props> = ({ verseKey }) => {
-  const url = getVerseNavigationUrl(verseKey);
+  const { lang } = useTranslation('');
   return (
-    <Button size={ButtonSize.Small} href={url} type={ButtonType.Secondary}>
-      {verseKey}
+    <Button
+      className={styles.verseLink}
+      size={ButtonSize.Small}
+      shape={ButtonShape.Circle}
+      href={getChapterWithStartingVerseUrl(verseKey)}
+      shouldShallowRoute
+      variant={ButtonVariant.Ghost}
+      shouldPrefetch={false}
+      onClick={() => {
+        logButtonClick('translation_view_verse_link');
+      }}
+    >
+      {toLocalizedVerseKey(verseKey, lang)}
     </Button>
   );
 };

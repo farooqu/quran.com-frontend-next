@@ -1,48 +1,66 @@
 {
-    "footer": {
-        "rights": "Todos os direitos reservados",
-        "title": "Leia, estude e aprenda O Nobre Alcorão."
+  "achieve-quran-goals": "Alcance seus objetivos do Alcorão",
+  "begin": "Começar",
+  "chapters-and-verses": "Capítulos e Versículos",
+  "continue-read": "Continuar lendo",
+  "explore-topics": "Explorar tópicos",
+  "first-time-reading": "Novo no Alcorão? <link> Comece aqui </link>",
+  "know-someone": "Cresça conosco neste <modalLink> Ramadã </modalLink>",
+  "learning-plan": "Planos de Aprendizagem",
+  "listen-to-radio": "Ouça a Rádio Alcorão",
+  "my-quran": "Meu Alcorão",
+  "navigate-quran": "Navegar pelo Alcorão",
+  "no-bookmarks": "Você ainda não tem favoritos",
+  "no-recently-read": "Você ainda não tem nenhuma sessão de leitura",
+  "noble-quran": "O Nobre Alcorão",
+  "popular": "Popular",
+  "qgj": {
+    "learning-plans": {
+      "cta": {
+        "all-plans": "Ver todos os planos",
+        "my-plans": "Meus planos"
+      },
+      "desc": {
+        "logged-in": "Você já iniciou um programa de aprendizado e perdeu o rumo no meio do caminho? Os planos de aprendizagem são divididos em partes gerenciáveis e acompanhamos seu progresso até chegar à linha de chegada. Explore nossa oferta atual de cursos hoje",
+        "logged-in-no-plans": "Você já iniciou um programa de aprendizado e perdeu o rumo no meio do caminho? Os planos de aprendizagem são divididos em partes gerenciáveis e acompanhamos seu progresso até chegar à linha de chegada. Explore nossa oferta atual de cursos hoje",
+        "logged-out": "Você já iniciou um programa de aprendizado e perdeu o rumo no meio do caminho? Os planos de aprendizagem são divididos em partes gerenciáveis e acompanhamos seu progresso até chegar à linha de chegada. Explore nossa oferta atual de cursos hoje"
+      },
+      "title": "Planos de aprendizagem"
     },
-    "hijri-date": {
-        "format": "{{month}} {{date}}, {{year}} AH",
-        "month": {
-            "1": "Muharram",
-            "10": "Shawwal",
-            "11": "Dhu Al-Qida",
-            "2": "Safar",
-            "3": "Rabi 'I",
-            "4": "Rabi 'II",
-            "5": "Jumada I",
-            "6": "Jumada Akhira",
-            "7": "Rajab",
-            "8": "Sha'ban",
-            "9": "Ramadã"
-        }
+    "quran-reading-goals": {
+      "desc": {
+        "logged-out": "Você quer ler 10 minutos por dia, completar um Juz em um mês ou terminar o Alcorão inteiro em um ano? É fácil criar uma meta personalizada e acompanhar seu progresso"
+      },
+      "title": "Metas personalizadas de leitura do Alcorão"
     },
-    "no-bookmarks": "Você ainda não tem favoritos",
-    "prayer-names": {
-        "asr": "Asr",
-        "dhuhr": "Dhuhr",
-        "fajr": "Fajr",
-        "isha": "Isha",
-        "maghrib": "Magreb",
-        "sunrise": "nascer do sol"
-    },
-    "prayer-times": {
-        "use-location": "Use localização precisa"
-    },
-    "recently-read": "Lidos recentemente",
-    "tab": {
-        "bookmarks": "Favoritos",
-        "popular": "Popular"
-    },
-    "voice": {
-        "trigger": "Acesso rápido a qualquer coisa"
-    },
-    "welcome": {
-        "desc": "Estamos ativamente adicionando novos recursos e promovendo mudanças. Se você tiver algum problema, forneça feedback.",
-        "feedback-cta": "Dar uma resposta",
-        "join-cta": "Junte-se à comunidade Discord",
-        "title": "Bem-vindo ao Pré-lançamento Beta do novo Quran.com!"
-    }
+    "title": "Jornada de Crescimento do Alcorão"
+  },
+  "qr-community": "Leia os versículos e reflexões em destaque hoje",
+  "ramadan-activities-cta": "<link> Siga o <b> Calendário Corânico Global </b> para leituras semanais, podcasts inspiradores e um chamado para refletir! </link>",
+  "ramadan": {
+    "header": "Ferramentas para aprofundar sua conexão com o Alcorão",
+    "title": "Pronto para o Ramadã?"
+  },
+  "read-juz": "Leia Juz",
+  "recently-read": "Lidos recentemente",
+  "revelation-order-disclaimer": "Esta exibição mostra a ordem cronológica das suratas no Alcorão com base em quando foram reveladas ao Profeta Muhammad <hover> ﷺ </hover> . A cronologia é um assunto de opinião acadêmica e algumas suratas foram reveladas em partes em diferentes épocas. A ordem aqui é baseada no trabalho de <link> Tanzil.net </link> . [Nota: a ordem de Mushaf compilada de al-Fatiha a al-Nas é uma questão de consenso.]",
+  "see-more-learning-plans": "Ver mais",
+  "set-custom-goal": "Defina uma meta",
+  "share-quran": {
+    "description": "Ajude a espalhar o Alcorão para novos alunos",
+    "title": "Compartilhe o Alcorão!"
+  },
+  "start-read": "Comece a ler",
+  "stay-consistent": "Acompanhe as sequências, crie metas personalizadas e seja consistente",
+  "tab": {
+    "bookmarks": "Favoritos",
+    "popular": "Popular"
+  },
+  "view-all-bookmarks": "Ver todos os favoritos",
+  "voice": {
+    "trigger": "Acesso rápido a qualquer coisa"
+  },
+  "welcome": {
+    "title": "É o mês do Alcorão! Ajude milhões de usuários a obter acesso à orientação do Alcorão."
+  }
 }

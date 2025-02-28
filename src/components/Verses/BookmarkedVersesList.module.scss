@@ -1,22 +1,22 @@
-@use "src/styles/breakpoints";
-
 .bookmarksHeader {
   margin-block-end: var(--spacing-xsmall);
 }
 
 .verseLinksContainer {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--spacing-small);
-  @include breakpoints.tablet {
-    display: flex;
-    align-items: center;
-  }
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-grow: 1;
+  flex-shrink: 0;
+}
+
+.viewAllBookmarksContainer {
+  white-space: nowrap;
+  text-decoration: underline;
 }
 
 .container {
   padding-block-start: 0;
-  padding-block-end: 0;
-  padding-inline-start: var(--flow-side-spacing);
-  padding-inline-end: var(--flow-side-spacing);
+  padding-block-end: var(--spacing-micro);
+  overflow-x: auto;
 }

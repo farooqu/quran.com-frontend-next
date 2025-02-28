@@ -1,26 +1,29 @@
+import { useContext } from 'react';
+
 import useTranslation from 'next-translate/useTranslation';
-import { useDispatch } from 'react-redux';
 
-import CloseIcon from '../../../../public/icons/close.svg';
-import { triggerPauseAudio } from '../EventTriggers';
-
-import PopoverMenu from 'src/components/dls/PopoverMenu/PopoverMenu';
-import { resetAudioData } from 'src/redux/slices/AudioPlayer/state';
+import Button, { ButtonShape, ButtonVariant } from '@/dls/Button/Button';
+import CloseIcon from '@/icons/close.svg';
+import { withStopPropagation } from '@/utils/event';
+import { logButtonClick } from '@/utils/eventLogger';
+import { AudioPlayerMachineContext } from 'src/xstate/AudioPlayerMachineContext';
 
 const CloseButton = () => {
-  const { t, lang } = useTranslation('common');
-  const dispatch = useDispatch();
+  const { t } = useTranslation('common');
+  const audioService = useContext(AudioPlayerMachineContext);
   return (
-    <PopoverMenu.Item
-      shouldCloseMenuAfterClick
-      onClick={() => {
-        triggerPauseAudio();
-        dispatch(resetAudioData(lang));
-      }}
-      icon={<CloseIcon />}
+    <Button
+      tooltip={t('audio.player.close-audio-player')}
+      shape={ButtonShape.Circle}
+      variant={ButtonVariant.Ghost}
+      onClick={withStopPropagation(() => {
+        logButtonClick(`audio_player_overflow_menu_close`);
+        audioService.send({ type: 'CLOSE' });
+      })}
+      shouldFlipOnRTL={false}
     >
-      {t('audio.player.close')}
-    </PopoverMenu.Item>
+      <CloseIcon />
+    </Button>
   );
 };
 

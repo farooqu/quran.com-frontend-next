@@ -1,9 +1,14 @@
 {
+  "about-quran": "About The Quran",
   "ayat-ul-kursi": "Ayatul Kursi",
-  "yaseen": "Yaseen",
-  "mulk": "Al Mulk",
-  "rahman": "Ar-Rahman",
-  "waqiah": "Al Waqi'ah",
+  "jesus-in-quran": "Jesus in the Quran",
   "kahf": "Al Kahf",
-  "muzzammil": "Al Muzzammil"
+  "mulk": "Al Mulk",
+  "muzzammil": "Al Muzzammil",
+  "qr": "Join Ramadan of Reflection",
+  "rahman": "Ar-Rahman",
+  "sunnah": "Verses about the Sunnah",
+  "waqiah": "Al Waqi'ah",
+  "what-is-ramadan": "What is Ramadan?",
+  "yaseen": "Yaseen"
 }

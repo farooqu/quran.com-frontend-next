@@ -1,37 +1,62 @@
-import React, { RefObject, useEffect, memo } from 'react';
+import React, { useEffect, memo, useContext, RefObject } from 'react';
 
+import { useSelector as useXstateSelector } from '@xstate/react';
 import classNames from 'classnames';
-import { useSelector } from 'react-redux';
+import { shallowEqual, useSelector } from 'react-redux';
 
 import { verseFontChanged } from '../utils/memoization';
 
 import styles from './Line.module.scss';
 
-import VerseText from 'src/components/Verse/VerseText';
-import useScroll, { SMOOTH_SCROLL_TO_CENTER } from 'src/hooks/useScrollToElement';
-import { selectEnableAutoScrolling } from 'src/redux/slices/AudioPlayer/state';
-import { selectIsLineHighlighted } from 'src/redux/slices/QuranReader/highlightedLocation';
-import QuranReaderStyles from 'src/redux/types/QuranReaderStyles';
+import ChapterHeader from '@/components/chapters/ChapterHeader';
+import { useOnboarding } from '@/components/Onboarding/OnboardingProvider';
+import VerseText from '@/components/Verse/VerseText';
+import useScroll, { SMOOTH_SCROLL_TO_CENTER } from '@/hooks/useScrollToElement';
+import { selectEnableAutoScrolling } from '@/redux/slices/AudioPlayer/state';
+import { selectInlineDisplayWordByWordPreferences } from '@/redux/slices/QuranReader/readingPreferences';
+import QuranReaderStyles from '@/redux/types/QuranReaderStyles';
+import { getWordDataByLocation } from '@/utils/verse';
+import { AudioPlayerMachineContext } from 'src/xstate/AudioPlayerMachineContext';
 import Word from 'types/Word';
 
 export type LineProps = {
   words: Word[];
   lineKey: string;
   isBigTextLayout: boolean;
+  // eslint-disable-next-line react/no-unused-prop-types
   quranReaderStyles: QuranReaderStyles;
+  pageIndex: number;
+  lineIndex: number;
 };
 
-const Line = ({ lineKey, words, isBigTextLayout }: LineProps) => {
-  const isHighlighted = useSelector(selectIsLineHighlighted(words.map((word) => word.verseKey)));
+const Line = ({ lineKey, words, isBigTextLayout, pageIndex, lineIndex }: LineProps) => {
+  const audioService = useContext(AudioPlayerMachineContext);
+  const isHighlighted = useXstateSelector(audioService, (state) => {
+    const { surah, ayahNumber } = state.context;
+    const verseKeys = words.map((word) => word.verseKey);
+    return verseKeys.includes(`${surah}:${ayahNumber}`);
+  });
+
   const [scrollToSelectedItem, selectedItemRef]: [() => void, RefObject<HTMLDivElement>] =
     useScroll(SMOOTH_SCROLL_TO_CENTER);
-  const enableAutoScrolling = useSelector(selectEnableAutoScrolling);
+
+  const { isActive } = useOnboarding();
+  // disable auto scrolling when the user is onboarding
+  const enableAutoScrolling = useSelector(selectEnableAutoScrolling, shallowEqual) && !isActive;
+  const { showWordByWordTranslation, showWordByWordTransliteration } = useSelector(
+    selectInlineDisplayWordByWordPreferences,
+    shallowEqual,
+  );
 
   useEffect(() => {
     if (isHighlighted && enableAutoScrolling) {
       scrollToSelectedItem();
     }
   }, [isHighlighted, scrollToSelectedItem, enableAutoScrolling]);
+
+  const firstWordData = getWordDataByLocation(words[0].location);
+  const shouldShowChapterHeader = firstWordData[1] === '1' && firstWordData[2] === '1';
+  const isWordByWordLayout = showWordByWordTranslation || showWordByWordTransliteration;
 
   return (
     <div
@@ -42,8 +67,25 @@ const Line = ({ lineKey, words, isBigTextLayout }: LineProps) => {
         [styles.mobileInline]: isBigTextLayout,
       })}
     >
-      <div className={classNames(styles.line, { [styles.mobileInline]: isBigTextLayout })}>
-        <VerseText words={words} isReadingMode isHighlighted={isHighlighted} />
+      {shouldShowChapterHeader && (
+        <ChapterHeader
+          chapterId={firstWordData[0]}
+          pageNumber={words[0].pageNumber}
+          hizbNumber={words[0].hizbNumber}
+        />
+      )}
+      <div
+        className={classNames(styles.line, {
+          [styles.mobileInline]: isBigTextLayout,
+          [styles.fixedWidth]: !isWordByWordLayout,
+        })}
+      >
+        <VerseText
+          words={words}
+          isReadingMode
+          isHighlighted={isHighlighted}
+          shouldShowH1ForSEO={pageIndex === 0 && lineIndex === 0}
+        />
       </div>
     </div>
   );

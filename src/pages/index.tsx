@@ -1,55 +1,135 @@
+/* eslint-disable react/no-multi-comp */
 import React from 'react';
 
 import classNames from 'classnames';
 import { NextPage, GetStaticProps } from 'next';
+import Head from 'next/head';
+import useTranslation from 'next-translate/useTranslation';
+import { useSelector } from 'react-redux';
 
 import styles from './index.module.scss';
 
-import ChapterAndJuzList from 'src/components/chapters/ChapterAndJuzList';
-import Footer from 'src/components/dls/Footer/Footer';
-import Separator from 'src/components/dls/Separator/Separator';
-import HomePageHero from 'src/components/HomePage/HomePageHero';
-import HomePageWelcomeMessage from 'src/components/HomePage/HomePageWelcomeMessage';
-import BookmarksSection from 'src/components/Verses/BookmarksSection';
-import RecentReadingSessions from 'src/components/Verses/RecentReadingSessions';
-import { getAllChaptersData } from 'src/utils/chapter';
+import ChapterAndJuzListWrapper from '@/components/chapters/ChapterAndJuzList';
+import HomepageFundraisingBanner from '@/components/Fundraising/HomepageFundraisingBanner';
+import CommunitySection from '@/components/HomePage/CommunitySection';
+import ExploreTopicsSection from '@/components/HomePage/ExploreTopicsSection';
+import HomePageHero from '@/components/HomePage/HomePageHero';
+import LearningPlansSection from '@/components/HomePage/LearningPlansSection';
+import MobileHomepageSections from '@/components/HomePage/MobileHomepageSections';
+import QuranGrowthJourneySection from '@/components/HomePage/QuranGrowthJourneySection';
+import ReadingSection from '@/components/HomePage/ReadingSection';
+import NextSeoWrapper from '@/components/NextSeoWrapper';
+import { selectIsHomepageBannerVisible } from '@/redux/slices/fundraisingBanner';
+import { isLoggedIn } from '@/utils/auth/login';
+import { getAllChaptersData } from '@/utils/chapter';
+import { getLanguageAlternates } from '@/utils/locale';
+import { getCanonicalUrl } from '@/utils/navigation';
+import { isMobile } from '@/utils/responsive';
 import { ChaptersResponse } from 'types/ApiResponses';
+import ChaptersData from 'types/ChaptersData';
 
 type IndexProps = {
   chaptersResponse: ChaptersResponse;
+  chaptersData: ChaptersData;
 };
 
-const Index: NextPage<IndexProps> = ({ chaptersResponse: { chapters } }) => (
-  <div className={styles.pageContainer}>
-    <div className={classNames(styles.listContainer, styles.flow)}>
-      <HomePageHero />
-      <div className={styles.flowItem}>
-        <HomePageWelcomeMessage />
+const Index: NextPage<IndexProps> = ({ chaptersResponse: { chapters } }): JSX.Element => {
+  const { t, lang } = useTranslation('home');
+  const isUserLoggedIn = isLoggedIn();
+  const isFundraisingBannerVisible = useSelector(selectIsHomepageBannerVisible);
+
+  return (
+    <>
+      <Head>
+        <link rel="preload" as="image" href="/images/background.png" crossOrigin="anonymous" />
+      </Head>
+      <NextSeoWrapper
+        title={t('home:noble-quran')}
+        url={getCanonicalUrl(lang, '')}
+        languageAlternates={getLanguageAlternates('')}
+      />
+      <div className={styles.pageContainer}>
+        <div className={styles.flow}>
+          <HomePageHero />
+          <div className={styles.bodyContainer}>
+            <div className={classNames(styles.flowItem, styles.fullWidth, styles.homepageCard)}>
+              <ReadingSection />
+            </div>
+            {isFundraisingBannerVisible && (
+              <div className={classNames(styles.flowItem, styles.fullWidth, styles.homepageCard)}>
+                <HomepageFundraisingBanner />
+              </div>
+            )}
+            {isMobile() ? (
+              <MobileHomepageSections isUserLoggedIn={isUserLoggedIn} />
+            ) : (
+              <>
+                {isUserLoggedIn ? (
+                  <>
+                    <div
+                      className={classNames(styles.flowItem, styles.fullWidth, styles.homepageCard)}
+                    >
+                      <LearningPlansSection />
+                    </div>
+                    <div
+                      className={classNames(styles.flowItem, styles.fullWidth, styles.homepageCard)}
+                    >
+                      <ExploreTopicsSection />
+                    </div>
+                    <div
+                      className={classNames(styles.flowItem, styles.fullWidth, styles.homepageCard)}
+                    >
+                      <CommunitySection />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div
+                      className={classNames(styles.flowItem, styles.fullWidth, styles.homepageCard)}
+                    >
+                      <ExploreTopicsSection />
+                    </div>
+                    <div
+                      className={classNames(styles.flowItem, styles.fullWidth, styles.homepageCard)}
+                    >
+                      <LearningPlansSection />
+                    </div>
+                    <div
+                      className={classNames(styles.flowItem, styles.fullWidth, styles.homepageCard)}
+                    >
+                      <CommunitySection />
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            <div
+              className={classNames(
+                styles.flowItem,
+                styles.fullWidth,
+                styles.homepageCard,
+                styles.mobileOnly,
+              )}
+            >
+              <QuranGrowthJourneySection />
+            </div>
+            <div className={styles.flowItem}>
+              <ChapterAndJuzListWrapper chapters={chapters} />
+            </div>
+          </div>
+        </div>
       </div>
-      <div className={classNames(styles.flowItem, styles.fullWidth)}>
-        <RecentReadingSessions />
-      </div>
-      <div className={classNames(styles.flowItem, styles.fullWidth)}>
-        <BookmarksSection />
-      </div>
-      <div className={styles.flowItem}>
-        <ChapterAndJuzList chapters={chapters} />
-      </div>
-      <div className={styles.flowItem}>
-        <Separator />
-      </div>
-      <div className={styles.flowItem}>
-        <Footer />
-      </div>
-    </div>
-  </div>
-);
+    </>
+  );
+};
 
 export const getStaticProps: GetStaticProps = async ({ locale }) => {
-  const allChaptersData = getAllChaptersData(locale);
+  const allChaptersData = await getAllChaptersData(locale);
 
   return {
     props: {
+      chaptersData: allChaptersData,
       chaptersResponse: {
         chapters: Object.keys(allChaptersData).map((chapterId) => {
           const chapterData = allChaptersData[chapterId];

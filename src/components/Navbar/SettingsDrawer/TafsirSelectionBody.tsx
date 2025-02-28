@@ -5,15 +5,16 @@ import groupBy from 'lodash/groupBy';
 import useTranslation from 'next-translate/useTranslation';
 import { useDispatch, useSelector } from 'react-redux';
 
-import IconSearch from '../../../../public/icons/search.svg';
-
 import styles from './SearchSelectionBody.module.scss';
 
-import DataFetcher from 'src/components/DataFetcher';
-import Input from 'src/components/dls/Forms/Input';
-import { selectSelectedTafsirs, setSelectedTafsirs } from 'src/redux/slices/QuranReader/tafsirs';
-import { makeTafsirsUrl } from 'src/utils/apiPaths';
-import { areArraysEqual } from 'src/utils/array';
+import DataFetcher from '@/components/DataFetcher';
+import Input from '@/dls/Forms/Input';
+import IconSearch from '@/icons/search.svg';
+import { selectSelectedTafsirs, setSelectedTafsirs } from '@/redux/slices/QuranReader/tafsirs';
+import SearchQuerySource from '@/types/SearchQuerySource';
+import { makeTafsirsUrl } from '@/utils/apiPaths';
+import { areArraysEqual } from '@/utils/array';
+import { logEmptySearchResults, logValueChange, logItemSelectionChange } from '@/utils/eventLogger';
 import { TafsirsResponse } from 'types/ApiResponses';
 import TafsirInfo from 'types/TafsirInfo';
 
@@ -24,26 +25,35 @@ const filterTafsirs = (tafsirs, searchQuery: string): TafsirInfo[] => {
   });
 
   const filteredTafsirs = fuse.search(searchQuery).map(({ item }) => item);
+  if (!filteredTafsirs.length) {
+    logEmptySearchResults({
+      query: searchQuery,
+      source: SearchQuerySource.TafsirSettingsDrawer,
+    });
+  }
   return filteredTafsirs as TafsirInfo[];
 };
 
 const TafsirsSelectionBody = () => {
   const { t } = useTranslation('common');
   const dispatch = useDispatch();
-  const selectedTafsirs = useSelector(selectSelectedTafsirs, areArraysEqual);
+  const selectedTafsirs = useSelector(selectSelectedTafsirs, areArraysEqual) as string[];
   const { lang } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
 
   const onTafsirsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedTranslationId = e.target.value;
+    const selectedTafsirId = e.target.value;
+    const isChecked = e.target.checked;
 
     // when the checkbox is checked
     // add the selectedTranslationId to redux
     // if unchecked, remove it from redux
-    const nextTafsirs = e.target.checked
-      ? [...selectedTafsirs, Number(selectedTranslationId)]
-      : selectedTafsirs.filter((id) => id !== Number(selectedTranslationId)); // remove the id
+    const nextTafsirs = isChecked
+      ? [...selectedTafsirs, selectedTafsirId]
+      : selectedTafsirs.filter((id) => id !== selectedTafsirId); // remove the id
 
+    logItemSelectionChange('tafsir', selectedTafsirId, isChecked);
+    logValueChange('selected_tafsirs', selectedTafsirs, nextTafsirs);
     dispatch(setSelectedTafsirs({ tafsirs: nextTafsirs, locale: lang }));
   };
 
@@ -70,18 +80,18 @@ const TafsirsSelectionBody = () => {
             <div>
               {Object.entries(tafsirsByLanguages).map(([language, tafsirs]) => {
                 return (
-                  <div className={styles.group}>
+                  <div className={styles.group} key={language}>
                     <div className={styles.language}>{language}</div>
                     {tafsirs.map((tafsir) => (
-                      <div key={tafsir.id} className={styles.item}>
+                      <div key={tafsir.slug} className={styles.item}>
                         <input
-                          id={tafsir.id.toString()}
+                          id={tafsir.slug.toString()}
                           type="checkbox"
-                          value={tafsir.id}
-                          checked={selectedTafsirs.includes(tafsir.id)}
+                          value={tafsir.slug}
+                          checked={selectedTafsirs.includes(tafsir.slug)}
                           onChange={onTafsirsChange}
                         />
-                        <label className={styles.label} htmlFor={tafsir.id.toString()}>
+                        <label className={styles.label} htmlFor={tafsir.slug.toString()}>
                           <span>{tafsir.name}</span>{' '}
                           <span className={styles.author}>{tafsir.authorName}</span>
                         </label>

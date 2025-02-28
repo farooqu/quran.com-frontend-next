@@ -1,15 +1,16 @@
+/* eslint-disable react/no-array-index-key */
 import React, { useMemo } from 'react';
 
 import classNames from 'classnames';
 import range from 'lodash/range';
 import useTranslation from 'next-translate/useTranslation';
 
-import PreviousIcon from '../../../../public/icons/caret-back.svg';
-import NextIcon from '../../../../public/icons/caret-forward.svg';
-
 import styles from './Pagination.module.scss';
 
-import Button, { ButtonVariant } from 'src/components/dls/Button/Button';
+import Button, { ButtonVariant } from '@/dls/Button/Button';
+import PreviousIcon from '@/icons/caret-back.svg';
+import NextIcon from '@/icons/caret-forward.svg';
+import { toLocalizedNumber } from '@/utils/locale';
 
 interface Props {
   currentPage: number;
@@ -38,7 +39,7 @@ const Pagination: React.FC<Props> = ({
   siblingsCount = DEFAULT_SIBLINGS_COUNT,
   showSummary = true,
 }) => {
-  const { t } = useTranslation('common');
+  const { t, lang } = useTranslation('common');
   const paginationRange = useMemo(() => {
     // Math.ceil is used to round the number to the next higher integer value e.g. 0.7 gets rounded to 1, 1.1 gets rounded to 2. This ensures that we are reserving an extra page for the remaining data.
     const totalPageCount = Math.ceil(totalCount / pageSize);
@@ -96,15 +97,15 @@ const Pagination: React.FC<Props> = ({
         <Button
           tooltip={t('prev')}
           variant={ButtonVariant.Ghost}
-          disabled={currentPage === 1}
+          isDisabled={currentPage === 1}
           onClick={onPrevious}
         >
           <PreviousIcon />
         </Button>
       </div>
-      {paginationRange.map((pageNumber) => {
+      {paginationRange.map((pageNumber, index) => {
         if (pageNumber === DOTS) {
-          return <div>{DOTS}</div>;
+          return <div key={`${pageNumber}-${index}`}>{DOTS}</div>;
         }
 
         return (
@@ -112,13 +113,13 @@ const Pagination: React.FC<Props> = ({
             className={classNames(styles.buttonContainer, {
               [styles.selectedButton]: pageNumber === currentPage,
             })}
-            key={pageNumber}
+            key={`${pageNumber}-${index}`}
           >
             <Button
               variant={ButtonVariant.Ghost}
               onClick={() => onPageChange(pageNumber as number)}
             >
-              {pageNumber.toString()}
+              {toLocalizedNumber(Number(pageNumber), lang)}
             </Button>
           </div>
         );
@@ -127,7 +128,7 @@ const Pagination: React.FC<Props> = ({
         <Button
           tooltip={t('next')}
           variant={ButtonVariant.Ghost}
-          disabled={currentPage === paginationRange[paginationRange.length - 1]}
+          isDisabled={currentPage === paginationRange[paginationRange.length - 1]}
           onClick={onNext}
         >
           <NextIcon />
@@ -136,9 +137,12 @@ const Pagination: React.FC<Props> = ({
       {showSummary && (
         <p className={styles.uppercase}>
           {t('pagination-summary', {
-            currentResultNumber: showingUntilItem - (pageSize - 1),
-            endOfResultNumber: totalCount < showingUntilItem ? totalCount : showingUntilItem,
-            totalNumberOfResults: totalCount,
+            currentResultNumber: toLocalizedNumber(showingUntilItem - (pageSize - 1), lang),
+            endOfResultNumber: toLocalizedNumber(
+              totalCount < showingUntilItem ? totalCount : showingUntilItem,
+              lang,
+            ),
+            totalNumberOfResults: toLocalizedNumber(totalCount, lang),
           })}
         </p>
       )}

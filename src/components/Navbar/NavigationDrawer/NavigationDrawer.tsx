@@ -2,21 +2,19 @@
 import React from 'react';
 
 import dynamic from 'next/dynamic';
-import Link from 'next/link';
 import { shallowEqual, useSelector } from 'react-redux';
 
-import IconQ from '../../../../public/icons/Q_simple.svg';
 import Drawer, { DrawerSide, DrawerType } from '../Drawer';
+import NavbarLogoWrapper from '../Logo/NavbarLogoWrapper';
 
 import styles from './NavigationDrawer.module.scss';
+import NavigationDrawerBodySkeleton from './NavigationDrawerBodySkeleton';
 
-import Button, { ButtonShape, ButtonVariant } from 'src/components/dls/Button/Button';
-import Spinner from 'src/components/dls/Spinner/Spinner';
-import { selectNavbar } from 'src/redux/slices/navbar';
+import { selectNavbar } from '@/redux/slices/navbar';
 
 const NavigationDrawerBody = dynamic(() => import('./NavigationDrawerBody'), {
   ssr: false,
-  loading: () => <Spinner />,
+  loading: () => <NavigationDrawerBodySkeleton />,
 });
 
 const NavigationDrawer = () => {
@@ -29,17 +27,7 @@ const NavigationDrawer = () => {
       header={
         <div className={styles.centerVertically}>
           <div className={styles.leftCTA}>
-            <Link href="/">
-              <a>
-                <Button
-                  shape={ButtonShape.Circle}
-                  variant={ButtonVariant.Ghost}
-                  shouldFlipOnRTL={false}
-                >
-                  <IconQ />
-                </Button>
-              </a>
-            </Link>
+            <NavbarLogoWrapper />
           </div>
         </div>
       }

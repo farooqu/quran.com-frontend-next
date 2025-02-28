@@ -1,112 +1,105 @@
-@font-face {
-  font-family: "quran-common";
-  src: url("/fonts/quran-common/quran_common.ttf") format("truetype");
-}
+// TODO: figure out a way to generate font faces on the fly. We're creating lot of font faces that browsers might not need.
 
+/*Fonts for rendering different Mushaf scripts*/
 @font-face {
   font-family: "IndoPak";
-  src: url("/fonts/indoPak/Naskh-Nastaleeq-IndoPak.woff") format("woff"),
-    url("/fonts/indoPak/Naskh-Nastaleeq-IndoPak.woff2") format("woff2");
-}
-
-@font-face {
-  font-family: "divehi";
-  src: url("/fonts/dhivehi/DhivehiAkuru.woff") format("woff"),
-    url("/fonts/dhivehi/DhivehiAkuru.otf") format("opentype");
+  src:
+    local("AlQuran IndoPak by QuranWBW"),
+    url("/fonts/quran/hafs/nastaleeq/indopak/indopak-nastaleeq-waqf-lazim-v4.2.1.woff2") format("woff2"),
+    url("/fonts/quran/hafs/nastaleeq/indopak/indopak-nastaleeq-waqf-lazim-v4.2.1.woff") format("woff"),
+    url("/fonts/quran/hafs/nastaleeq/indopak/indopak-nastaleeq-waqf-lazim-v4.2.1.ttf") format("truetype");
   font-display: swap;
 }
 
 @font-face {
-  font-family: "nafees";
-  src: local("Noto Naskh Arabic"), local("Nafees Regular"),
-    url("/fonts/urdu/NotoNaskhArabic-Regular.eot"),
-    url("/fonts/urdu/NotoNaskhArabic-Regular.eot?#iefix")
-      format("embedded-opentype"),
-    url("/fonts/urdu/NotoNaskhArabic-Regular.woff") format("woff"),
-    url("/fonts/urdu/NotoNaskhArabic-Regular.ttf") format("truetype");
+  font-family: "UthmanicHafs";
+  src:
+    local("KFGQPC HAFS Uthmanic Script"),
+    url("/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.woff2") format("woff2"),
+    url("/fonts/quran/hafs/uthmanic_hafs/UthmanicHafs1Ver18.ttf") format("truetype");
+  font-display: swap;
+}
+
+// TODO: regenerate this font and add font-family name
+@font-face {
+  font-family: "surahnames";
+  src:
+    url("/fonts/quran/surah-names/v1/sura_names.woff2"),
+    url("/fonts/quran/quran/surah-names/v1/sura_names.woff") format("woff");
   font-weight: normal;
   font-style: normal;
+  font-display: swap;
+}
+
+/*Language specific fonts*/
+@font-face {
+  font-family: "divehi";
+  src:
+    local("Dhivehi Akuru"),
+    url("/fonts/lang/dhivehi/dhivehi/DhivehiAkuru.woff2"),
+    url("/fonts/lang/dhivehi/dhivehi/DhivehiAkuru.woff") format("woff"),
+    url("/fonts/lang/dhivehi/dhivehi/DhivehiAkuru.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "NotoNastaliq";
+  src:
+    local("Noto Naskh Arabic"),
+    local("Nafees Regular"),
+    url("/fonts/lang/arabic/NotoNaskhArabic-Regular.woff2"),
+    url("/fonts/lang/arabic/NotoNaskhArabic-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "MehrNastaliq";
+  src:
+    local("Mehr Nastaliq Web"),
+    url("/fonts/lang/urdu/MehrNastaliqWeb.woff2"),
+    url("/fonts/lang/urdu/MehrNastaliqWeb.woff") format("woff"),
+    url("/fonts/lang/urdu/MehrNastaliqWeb.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+  // only apply this font to Urdu characters https://jrgraphix.net/r/Unicode/0600-06FF
+  unicode-range: U+0600-06FF;
+}
+
+@font-face {
+  font-family: "NotoSerifBengali";
+  src: local("Noto Serif Bengali"), url("/fonts/lang/bengali/NotoSerifBengali-Regular.woff2");
   font-display: swap;
 }
 
 @font-face {
   font-family: "DroidArabicNaskh";
-  src: url("/fonts/kurdish/droid-naskh-regular.ttf") format("truetype");
+  src:
+    local("Droid Arabic Naskh"),
+    url("/fonts/lang/kurdish/droid-naskh-regular.woff2"),
+    url("/fonts/lang/kurdish/droid-naskh-regular.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "meQuran";
-  src: local("me_quranR3HOQ"), url("/fonts/madani/me_quran.woff2"),
-    url("/fonts/madani/me_quran.ttf") format("truetype");
-}
-
-@font-face {
-  font-family: "UthmanicHafs1Ver17";
-  src: local("KFGQPC HAFS Uthmanic Script Regular. Version 0.17"),
-    url("/fonts/uthmanic_hafs/UthmanicHafs1-Ver17.woff2"),
-    url("/fonts/uthmanic_hafs/UthmanicHafs1-Ver17.ttf") format("truetype");
-}
-
-// Fallback for browsers that don't support variable fonts
-@font-face {
-  font-family: "ProximaVara";
-  src: url("/fonts/ProximaVara/proxima_vara_regular.woff2"),
-    url("/fonts/ProximaVara/proxima_vara_regular.woff");
-  font-weight: normal;
   font-display: swap;
 }
 
 // Fallback for browsers that don't support variable fonts
 @font-face {
-  font-family: "ProximaVara";
-  src: url("/fonts/ProximaVara/proxima_vara_bold.woff2"),
-    url("/fonts/ProximaVara/proxima_vara_bold.woff");
-  font-weight: bold;
+  font-family: "Figtree";
+  src: local("Open Sans"), url("/fonts/lang/Figtree/Figtree.ttf");
+  font-weight: 100 900;
+  /* default 400 */
+  font-stretch: 50% 100%;
+  /* default 100% */
   font-display: swap;
 }
 
 @font-face {
-  font-family: "ProximaVara";
-  src: url("/fonts/ProximaVara/proxima_vara_semibold.woff2"),
-    url("/fonts/ProximaVara/proxima_vara_semibold.woff");
-  font-weight: 600;
+  font-family: "PlayfairDisplay";
+  src:
+    local("Playfair Display"),
+    url("/fonts/lang/PlayfairDisplay/PlayfairDisplay-Black.ttf") format("truetype");
   font-display: swap;
-}
-
-@font-face {
-  font-family: "bismillah";
-  src: url("/fonts/bismillah/bismillah.woff2"),
-    url("/fonts/bismillah/bismillah.eot?#iefix") format("embedded-opentype"),
-    url("/fonts/bismillah/bismillah.woff") format("woff"),
-    url("/fonts/bismillah/bismillah.ttf") format("truetype"),
-    url("/fonts/bismillah/bismillah.svg#bismillah") format("svg");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "surahnames";
-  src: url("/fonts/surah-names/surah-names.eot");
-  src: url("/fonts/surah-names/surah-names.eot#iefix")
-      format("embedded-opentype"),
-    url("/fonts/surah-names/surah-names.ttf") format("truetype"),
-    url("/fonts/surah-names/surah-names.woff") format("woff"),
-    url("/fonts/surah-names/surah-names.svg#surah-names") format("svg");
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Al-Jazeera";
-  src: url("/fonts/AlJazeera/Al-Jazeera-Regular.woff2");
-}
-
-@font-face {
-  font-family: "NotoSerifBengali";
-  src: url("/fonts/NotoSerifBengali/NotoSerifBengali-Regular.ttf");
 }

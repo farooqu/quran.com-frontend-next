@@ -1,8 +1,8 @@
 import Slug from './Slug';
-import TranslatedName from './TranslatedName';
 
 interface Chapter {
-  id: number | string;
+  id?: number | string;
+  localizedId?: string;
   versesCount: number;
   bismillahPre: boolean;
   revelationOrder: number;
@@ -11,8 +11,9 @@ interface Chapter {
   nameComplex: string;
   transliteratedName: string;
   nameArabic: string;
-  translatedName: TranslatedName | string;
-  defaultSlug: Slug;
+  translatedName: string;
+  defaultSlug: Slug | string;
+  slug?: string;
   slugs?: Slug[];
 }
 

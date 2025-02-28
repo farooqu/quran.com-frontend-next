@@ -1,11 +1,17 @@
 import AudioData from './AudioData';
 import AvailableLanguage from './AvailableLanguage';
 import AvailableTranslation from './AvailableTranslation';
+import AvailableWordByWordTranslation from './AvailableWordByWordTranslation';
 import Chapter from './Chapter';
 import ChapterInfo from './ChapterInfo';
 import Footnote from './Footnote';
+import LookupRange from './LookupRange';
+import LookupRecord from './LookupRecord';
+import MetaData from './MetaData';
 import Reciter from './Reciter';
-import { SearchNavigationResult } from './SearchNavigationResult';
+import { SearchNavigationResult } from './Search/SearchNavigationResult';
+import SearchService from './Search/SearchService';
+import SearchVerseItem from './Search/SearchVerseItem';
 import TafsirInfo from './TafsirInfo';
 import Verse from './Verse';
 
@@ -14,7 +20,7 @@ export interface BaseResponse {
   error?: string;
 }
 
-interface Pagination {
+export interface Pagination {
   perPage: number;
   currentPage: number;
   nextPage: number | null;
@@ -26,12 +32,17 @@ interface Pagination {
 export interface VersesResponse extends BaseResponse {
   pagination: Pagination;
   verses: Verse[];
-  metaData?: Record<string, string>;
+  metaData?: MetaData;
+  pagesLookup?: PagesLookUpResponse;
 }
 
 // The response from the chapters endpoint that returns a list of the chapters
 export interface ChaptersResponse extends BaseResponse {
   chapters: Chapter[];
+}
+
+export interface VerseResponse extends BaseResponse {
+  verse: Verse;
 }
 
 // The response from the chapter endpoint that returns information on a chapter
@@ -43,12 +54,20 @@ export interface TranslationsResponse extends BaseResponse {
   translations?: AvailableTranslation[];
 }
 
+export interface WordByWordTranslationsResponse extends BaseResponse {
+  wordByWordTranslations?: AvailableWordByWordTranslation[];
+}
+
 export interface LanguagesResponse extends BaseResponse {
   languages?: AvailableLanguage[];
 }
 
 export interface RecitersResponse extends BaseResponse {
   reciters?: Reciter[];
+}
+
+export interface ReciterResponse extends BaseResponse {
+  reciter?: Reciter;
 }
 
 export interface AudioDataResponse extends BaseResponse {
@@ -62,10 +81,11 @@ export interface AudioTimestampsResponse extends BaseResponse {
   };
 }
 export interface SearchResponse extends BaseResponse {
+  service?: SearchService;
   pagination: Pagination;
   result?: {
     navigation: SearchNavigationResult[];
-    verses: Verse[];
+    verses: SearchVerseItem[];
   };
 }
 
@@ -83,4 +103,25 @@ export interface ChapterInfoResponse extends BaseResponse {
 
 export interface FootnoteResponse extends BaseResponse {
   footNote?: Footnote;
+}
+
+export interface PagesLookUpResponse extends BaseResponse {
+  lookupRange: LookupRange;
+  pages?: Record<string, LookupRecord>;
+  totalPage?: number;
+}
+
+export interface TafsirContentResponse extends BaseResponse {
+  tafsir: {
+    verses: Record<string, Verse>;
+    resourceId: number;
+    resourceName: string;
+    languageId: number;
+    translatedName: {
+      name: string;
+      languageName: string;
+    };
+    text: string;
+    slug?: string;
+  };
 }

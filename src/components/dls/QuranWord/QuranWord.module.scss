@@ -1,26 +1,14 @@
 .container {
   display: inline-block;
   cursor: pointer;
+  white-space: nowrap;
 }
-.additionalWordGap + .additionalWordGap {
+.additionalWordGap {
   margin-inline-end: var(--spacing-xxsmall);
 }
 
-.tajweedWord {
-  @media (prefers-color-scheme: dark) {
-    --tajweed-image-bg: rgba(255, 255, 255, 0.25);
-  }
-  @media (prefers-color-scheme: light) {
-    --tajweed-image-bg: rgba(31, 189, 233, 0.15);
-  }
-
-  &:hover {
-    background-color: var(--tajweed-image-bg);
-  }
-
-  @at-root .highlighted {
-    background-color: var(--tajweed-image-bg);
-  }
+.secondaryHighlight {
+  background-color: var(--color-background-alternative-faded);
 }
 
 .wbwContainer {
@@ -31,12 +19,14 @@
   padding-inline-end: var(--spacing-micro);
 }
 
-.highlighted {
-  color: var(--color-success-medium);
+.highlightOnHover {
+  &:hover {
+    color: var(--color-success-medium);
+  }
 }
 
-.wbwText {
-  font-size: var(--font-size-small);
+.highlighted {
+  color: var(--color-success-medium);
 }
 
 .tooltipText {
@@ -44,6 +34,7 @@
   padding-block-end: var(--spacing-micro);
   padding-inline-start: var(--spacing-micro);
   padding-inline-end: var(--spacing-micro);
+  white-space: normal;
 }
 
 .popoverTrigger {

@@ -30,6 +30,11 @@ interface Props {
   avoidCollisions?: boolean;
   useTooltipStyles?: boolean;
   defaultStyling?: boolean;
+  isPortalled?: boolean;
+  triggerStyles?: string;
+  contentStyles?: string;
+  contentSideOffset?: number;
+  isContainerSpan?: boolean;
 }
 
 const Popover: React.FC<Props> = ({
@@ -44,28 +49,54 @@ const Popover: React.FC<Props> = ({
   tip = false,
   useTooltipStyles = false,
   defaultStyling = true,
-}) => (
-  <div className={classNames({ [styles.container]: defaultStyling })}>
+  isPortalled = true,
+  contentSideOffset = 2,
+  triggerStyles,
+  contentStyles,
+  isContainerSpan = false,
+}) => {
+  const content = (
+    <RadixPopover.Content
+      sideOffset={contentSideOffset}
+      side={contentSide}
+      align={contentAlign}
+      avoidCollisions={avoidCollisions}
+      className={classNames(styles.content, {
+        [styles.tooltipContent]: useTooltipStyles,
+        [contentStyles]: contentStyles,
+      })}
+    >
+      {children}
+      {tip && <RadixPopover.Arrow />}
+    </RadixPopover.Content>
+  );
+
+  const containerChild = (
     <RadixPopover.Root
       modal={isModal}
       {...(typeof open !== 'undefined' && { open })}
       {...(onOpenChange && { onOpenChange })}
     >
-      <RadixPopover.Trigger aria-label="Open popover" className={styles.trigger}>
-        {trigger}
+      <RadixPopover.Trigger aria-label="Open popover" asChild>
+        <span
+          className={classNames(styles.trigger, {
+            [triggerStyles]: triggerStyles,
+          })}
+        >
+          {trigger}
+        </span>
       </RadixPopover.Trigger>
-      <RadixPopover.Content
-        sideOffset={2}
-        side={contentSide}
-        align={contentAlign}
-        avoidCollisions={avoidCollisions}
-        className={classNames(styles.content, { [styles.tooltipContent]: useTooltipStyles })}
-      >
-        {children}
-        {tip && <RadixPopover.Arrow />}
-      </RadixPopover.Content>
+      {isPortalled ? <RadixPopover.Portal>{content}</RadixPopover.Portal> : content}
     </RadixPopover.Root>
-  </div>
-);
+  );
+
+  if (isContainerSpan) {
+    return (
+      <span className={classNames({ [styles.container]: defaultStyling })}>{containerChild}</span>
+    );
+  }
+
+  return <div className={classNames({ [styles.container]: defaultStyling })}>{containerChild}</div>;
+};
 
 export default Popover;

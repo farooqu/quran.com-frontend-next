@@ -1,35 +1,30 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
-import { Middleware } from 'redux';
+import { AnyAction, Middleware, MiddlewareAPI, Dispatch } from 'redux';
 
 import { RootState } from '../RootState';
 import { setIsUsingDefaultSettings } from '../slices/defaultSettings';
-import { RESET_SETTINGS_EVENT } from '../slices/reset-settings';
+import SliceName from '../types/SliceName';
+
+import { RESET_SETTINGS_EVENT } from '@/redux/actions/reset-settings';
 
 const OBSERVED_ACTIONS = [
-  'theme/setTheme',
-  'readingPreferences/setReadingPreference',
-  'readingPreferences/setSelectedWordByWordLocale',
-  'readingPreferences/setSelectedWordByWordTransliteration',
-  'readingPreferences/setSelectedWordByWordTranslation',
-  'readingPreferences/setShowWordByWordTranslation',
-  'readingPreferences/setShowWordByWordTransliteration',
-  'readingPreferences/setShowTooltipFor',
-  'readingPreferences/setWordClickFunctionality',
-  'quranReaderStyles/setQuranFont',
-  'quranReaderStyles/setMushafLines',
-  'quranReaderStyles/increaseQuranTextFontScale',
-  'quranReaderStyles/decreaseQuranTextFontScale',
-  'quranReaderStyles/decreaseTranslationFontScale',
-  'quranReaderStyles/increaseTranslationFontScale',
-  'translations/setSelectedTranslations',
-  'quranReaderStyles/increaseTafsirFontScale',
-  'quranReaderStyles/decreaseTafsirFontScale',
-  'tafsirs/setSelectedTafsirs',
-  'audioPlayerState/setEnableAutoScrolling',
-  'audioPlayerState/setPlaybackRate',
-  'audioPlayerState/setReciter',
-  'prayerTimes/setCalculationMethod',
-  'prayerTimes/setMadhab',
+  `${SliceName.THEME}/setTheme`,
+  `${SliceName.READING_PREFERENCES}/setReadingPreference`,
+  `${SliceName.READING_PREFERENCES}/setSelectedWordByWordLocale`,
+  `${SliceName.READING_PREFERENCES}/setWordByWordContentType`,
+  `${SliceName.READING_PREFERENCES}/setWordByWordDisplay`,
+  `${SliceName.READING_PREFERENCES}/setWordClickFunctionality`,
+  `${SliceName.QURAN_READER_STYLES}/setQuranFont`,
+  `${SliceName.QURAN_READER_STYLES}/setMushafLines`,
+  `${SliceName.QURAN_READER_STYLES}/increaseQuranTextFontScale`,
+  `${SliceName.QURAN_READER_STYLES}/decreaseQuranTextFontScale`,
+  `${SliceName.QURAN_READER_STYLES}/decreaseTranslationFontScale`,
+  `${SliceName.QURAN_READER_STYLES}/increaseTranslationFontScale`,
+  `${SliceName.TRANSLATIONS}/setSelectedTranslations`,
+  `${SliceName.QURAN_READER_STYLES}/increaseTafsirFontScale`,
+  `${SliceName.QURAN_READER_STYLES}/decreaseTafsirFontScale`,
+  `${SliceName.TAFSIRS}/setSelectedTafsirs`,
+  `${SliceName.AUDIO_PLAYER_STATE}/setEnableAutoScrolling`,
 ];
 
 /**
@@ -47,15 +42,18 @@ const DefaultSettingsMiddleware: Middleware<
   // eslint-disable-next-line @typescript-eslint/ban-types
   {}, // Most middleware do not modify the dispatch return value
   RootState
-> = (storeAPI) => (next) => (action) => {
-  const { type } = action;
-  // the moment any of the actions that change the settings has changed, it means we are no longer using the default settings
-  if (OBSERVED_ACTIONS.includes(type)) {
-    storeAPI.dispatch({ type: setIsUsingDefaultSettings.type, payload: false });
-  } else if (type === RESET_SETTINGS_EVENT) {
-    storeAPI.dispatch({ type: setIsUsingDefaultSettings.type, payload: true });
-  }
-  return next(action);
-};
+> =
+  (storeAPI: MiddlewareAPI<Dispatch<AnyAction>>) =>
+  (next: Dispatch<AnyAction>) =>
+  (action: AnyAction) => {
+    const { type } = action;
+    // the moment any of the actions that change the settings has changed, it means we are no longer using the default settings
+    if (OBSERVED_ACTIONS.includes(type)) {
+      storeAPI.dispatch({ type: setIsUsingDefaultSettings.type, payload: false });
+    } else if (type === RESET_SETTINGS_EVENT) {
+      storeAPI.dispatch({ type: setIsUsingDefaultSettings.type, payload: true });
+    }
+    return next(action);
+  };
 
 export default DefaultSettingsMiddleware;

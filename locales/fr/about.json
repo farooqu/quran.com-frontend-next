@@ -1,18 +1,42 @@
 {
-    "credits": {
-        "desc": "Ce site Web a été créé par quelques bénévoles et a été rendu possible grâce à la volonté d'Allah (Gloire à Lui) et avec l'aide de la communauté musulmane open source en ligne. Les sources de données incluent <0> Tanzil <\/0> , <1> QuranComplex <\/1> , <2> Collin Fair <\/2> travail sur les segments audio, <3> QuranEnc <\/3> , <4> Zekr <\/4> et projet de coran en ligne.",
-        "lokalize": "La localisation a été rendue possible grâce à l'aide de <0> Lokalise <\/0>qui est un système de traduction assistée par ordinateur qui met l'accent sur la productivité et l'assurance qualité et fournit un flux de travail de localisation transparent.",
-        "title": "Crédits"
-    },
-    "main-desc": "Le Noble Coran est le texte religieux central de l'Islam. Les musulmans croient que le Coran est le livre de la direction et de la direction divines pour l'humanité, et considèrent le texte arabe original comme la révélation finale d'Allah (Dieu). Toutes les traductions du texte arabe original sont donc des interprétations des significations originales et doivent être acceptées comme telles.",
-    "meccan": {
-        "desc": "Les sourates mecquoises sont les chapitres (sourates) chronologiquement antérieurs du Coran qui, selon la tradition islamique, ont été révélés à tout moment avant la migration du prophète islamique Muhammed et de ses disciples de La Mecque à Médine (Hijra). Les sourates médinoises sont ces révélations qui se sont produites après le déménagement dans la ville de ce nom.",
-        "surahs": "Sourates mecquoises"
-    },
-    "median": {
-        "desc": "Les sourates médinoises ou chapitres médinois du Coran sont les 24 dernières sourates qui, selon la tradition islamique, ont été révélées à Médine après Mahomet &apos; s hijra de La Mecque. Ces sourates ont été révélées par Allah lorsque la communauté musulmane était plus nombreuse et plus développée, par opposition à leur position minoritaire à La Mecque.",
-        "surahs": "Sourates de Médine"
-    },
-    "questions": "Si vous avez des questions, vous pouvez visiter la page <0> commentaires <\/0> .",
-    "redesign": "Nous avons repensé le site Web avec une approche conviviale à l'esprit. Pour parcourir les sourates, cliquez sur le bouton (illustré à gauche) dans la page LIRE ET ÉCOUTER et parcourir la sourate par titre ou par page. Dans les prochaines itérations, nous intégrerons plus de fonctionnalités de recherche et audio inchaAllah. Si vous avez des suggestions sur la façon dont nous pouvons améliorer l'expérience du site Web, n'hésitez pas à <0> nous faire part de vos commentaires <\/0> ."
+  "credits": {
+    "desc": "Nous adressons nos remerciements à tous ceux qui ont soutenu et contribué à ce projet, contribuant ainsi à rendre le Coran accessible à des millions de personnes dans le monde.",
+    "lokalize": "<0>Lokalize</0> : un système de traduction assistée par ordinateur qui met l'accent sur la productivité et l'assurance qualité et fournit un flux de travail de localisation transparent.",
+    "quran-align": "<0>Collin Fair</0> : un outil permettant de produire une segmentation précise au mot près de la récitation coranique enregistrée.",
+    "quran-complex": "<0>QuranComplex</0> : Le complexe d'impression du Coran glorieux du roi Fahd est un leader dans le service du Coran glorieux et de ses sciences, la traduction de ses significations et la protection du texte coranique contre toute distorsion, grâce à l'utilisation optimale de technologies avancées dans le domaine de l'impression, des enregistrements audio, de l'édition électronique et des applications numériques.",
+    "quran-enc": "<0>QuranEnc</0> : Un portail proposant des traductions gratuites et fiables des significations et des exégèses du noble Coran dans de nombreuses langues du monde.",
+    "tanzil": "<0>Tanzil</0> : un projet coranique international visant à fournir un texte coranique précis et hautement vérifié.",
+    "tarteel": "<0>Tarteel</0> : une application de mémorisation du Coran alimentée par l'IA. Elle est conçue pour vous aider à mémoriser plus intelligemment, que vous recherchiez un verset, que vous suiviez vos progrès ou que vous suiviez votre récitation.",
+    "title": "Crédits",
+    "vercel": "<0>Vercel</0> : est une plateforme de déploiement et de collaboration pour les développeurs front-end qui place le développeur front-end au premier plan, en lui offrant des outils complets pour créer des sites Web et des applications hautes performances.",
+    "zekr": "<0>Zekr</0> : un outil d'étude du Coran à plateforme ouverte pour parcourir et rechercher le Coran"
+  },
+  "global-effort": {
+    "desc": "Des millions de personnes du monde entier comptent sur Quran.com comme principale ressource numérique du Coran. Qu'ils viennent pour réciter, réfléchir, mémoriser ou étudier, ils partagent un objectif commun : un désir sincère de se connecter aux paroles d'Allah. \\n Alors que nous continuons à nous développer, nous restons déterminés à faire en sorte que Quran.com reste un espace fiable, accessible et magnifiquement conçu pour quiconque cherche à s'engager avec le Coran.",
+    "title": "Un effort mondial"
+  },
+  "key-features": {
+    "desc": "Quran.com est conçu pour accompagner chaque étape de l'apprentissage du Coran, de la lecture et de la mémorisation à l'étude et à la réflexion. Nos fonctionnalités comprennent :",
+    "features": [
+      "Interface conviviale du Coran – Une expérience de lecture claire et intuitive sur n’importe quel appareil.",
+      "Traductions multiples et Tafsir – Accès aux traductions dans plusieurs langues, ainsi qu'au tafsir.",
+      "Récitations audio – Écoutez des récitations de haute qualité de Qaris de renommée mondiale, avec la possibilité de suivre mot par mot.",
+      "Recherche et navigation avancées – Trouvez instantanément des versets par sujet ou par mots-clés dans tout le Coran.",
+      "Signet et notes sur les versets – Enregistrez des versets et écrivez des réflexions personnelles pour référence ultérieure.",
+      "Intégration QuranReflect – Engagez-vous avec une communauté mondiale à travers des réflexions et des idées partagées par des universitaires et des particuliers.",
+      "Suivi des progrès et objectifs de lecture – Suivez vos objectifs quotidiens et votre historique de lecture",
+      "API pour les développeurs – Accès gratuit au contenu et aux fonctionnalités pour alimenter les applications islamiques et la R&D.",
+      "Et bien plus encore, Alhamdullilah."
+    ],
+    "title": "Principales caractéristiques et offres"
+  },
+  "main-description": "Depuis sa création en 1995, Quran.com s'est engagé à rendre le Coran accessible à tous d'une manière claire, authentique et facile à comprendre. Chaque jour, des millions de personnes dans le monde entier se tournent vers Quran.com pour lire, écouter, étudier et réfléchir sur le Coran, qu'ils soient des étudiants de longue date, des érudits ou qu'ils commencent tout juste leur parcours.",
+  "our-mission": {
+    "desc": "Le Coran est destiné à être lu, compris et médité. Notre mission est de supprimer les obstacles à l’accès et de responsabiliser les individus et les communautés en offrant une expérience coranique fiable, bien conçue et profondément enrichissante. Notre objectif est de servir de source fiable pour quiconque cherche à s’engager avec le Coran, guidé par les principes d’exactitude, de clarté et de sincérité.",
+    "title": "Notre mission"
+  },
+  "who-we-are": {
+    "desc": "Quran.com est un waqf (fonds de dotation), créé en tant que fiducie publique pour garantir que le Coran reste accessible à tous, gratuitement et sans intérêts commerciaux. Il est géré par Quran.Foundation, une organisation à but non lucratif 501(c)(3), qui soutient et développe Quran.com dans le cadre de sa mission de fournir au monde des ressources coraniques authentiques et de haute qualité. Notre engagement est de servir le Coran et ses lecteurs avec excellence, sincérité et responsabilité.",
+    "title": "Qui sommes-nous"
+  }
 }
